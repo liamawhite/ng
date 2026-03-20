@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/liamawhite/ng/backend/pkg/graph"
 	"gopkg.in/yaml.v3"
 )
@@ -94,8 +95,9 @@ func WriteFile(dir string, node *graph.Node, edges []graph.Edge) error {
 
 	path := filepath.Join(dir, node.ID+".md")
 
-	// Write atomically via temp file + rename.
-	tmp := path + ".tmp"
+	// Write atomically via temp file + rename. Use a unique suffix so that concurrent
+	// writes to the same node don't collide on the temp path.
+	tmp := filepath.Join(dir, node.ID+"."+uuid.New().String()+".tmp")
 	if err := os.WriteFile(tmp, buf.Bytes(), 0o644); err != nil {
 		return fmt.Errorf("write temp file: %w", err)
 	}
