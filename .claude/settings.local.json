@@ -5,7 +5,10 @@
       "Bash(buf dep:*)",
       "Bash(buf generate:*)",
       "Bash(go build:*)",
-      "Bash(go test:*)"
+      "Bash(go test:*)",
+      "Bash(ls:*)",
+      "Bash(npm show:*)",
+      "Bash(git add:*)"
     ]
   }
 }
