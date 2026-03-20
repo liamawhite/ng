@@ -7,6 +7,7 @@
 package api
 
 import (
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
@@ -1187,7 +1188,7 @@ var File_ng_proto protoreflect.FileDescriptor
 
 const file_ng_proto_rawDesc = "" +
 	"\n" +
-	"\bng.proto\x12\x05ng.v1\x1a\x1bgoogle/protobuf/empty.proto\"f\n" +
+	"\bng.proto\x12\x05ng.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\"f\n" +
 	"\aProject\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
@@ -1265,21 +1266,21 @@ const file_ng_proto_rawDesc = "" +
 	"\tDirection\x12\x19\n" +
 	"\x15DIRECTION_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12DIRECTION_OUTGOING\x10\x01\x12\x16\n" +
-	"\x12DIRECTION_INCOMING\x10\x022\xaf\x02\n" +
-	"\x0eProjectService\x125\n" +
-	"\x06Create\x12\x1b.ng.v1.CreateProjectRequest\x1a\x0e.ng.v1.Project\x12/\n" +
-	"\x03Get\x12\x18.ng.v1.GetProjectRequest\x1a\x0e.ng.v1.Project\x12?\n" +
-	"\x04List\x12\x1a.ng.v1.ListProjectsRequest\x1a\x1b.ng.v1.ListProjectsResponse\x125\n" +
-	"\x06Update\x12\x1b.ng.v1.UpdateProjectRequest\x1a\x0e.ng.v1.Project\x12=\n" +
-	"\x06Delete\x12\x1b.ng.v1.DeleteProjectRequest\x1a\x16.google.protobuf.Empty2\x91\x02\n" +
-	"\vTaskService\x12/\n" +
-	"\x06Create\x12\x18.ng.v1.CreateTaskRequest\x1a\v.ng.v1.Task\x12)\n" +
-	"\x03Get\x12\x15.ng.v1.GetTaskRequest\x1a\v.ng.v1.Task\x129\n" +
-	"\x04List\x12\x17.ng.v1.ListTasksRequest\x1a\x18.ng.v1.ListTasksResponse\x12/\n" +
-	"\x06Update\x12\x18.ng.v1.UpdateTaskRequest\x1a\v.ng.v1.Task\x12:\n" +
-	"\x06Delete\x12\x18.ng.v1.DeleteTaskRequest\x1a\x16.google.protobuf.Empty2T\n" +
-	"\fGraphService\x12D\n" +
-	"\vListRelated\x12\x19.ng.v1.ListRelatedRequest\x1a\x1a.ng.v1.ListRelatedResponseB)Z'github.com/liamawhite/ng/api/golang;apib\x06proto3"
+	"\x12DIRECTION_INCOMING\x10\x022\xc6\x03\n" +
+	"\x0eProjectService\x12R\n" +
+	"\x06Create\x12\x1b.ng.v1.CreateProjectRequest\x1a\x0e.ng.v1.Project\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/v1/projects\x12N\n" +
+	"\x03Get\x12\x18.ng.v1.GetProjectRequest\x1a\x0e.ng.v1.Project\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/projects/{id}\x12Y\n" +
+	"\x04List\x12\x1a.ng.v1.ListProjectsRequest\x1a\x1b.ng.v1.ListProjectsResponse\"\x18\x82\xd3\xe4\x93\x02\x12\x12\x10/api/v1/projects\x12W\n" +
+	"\x06Update\x12\x1b.ng.v1.UpdateProjectRequest\x1a\x0e.ng.v1.Project\" \x82\xd3\xe4\x93\x02\x1a:\x01*\x1a\x15/api/v1/projects/{id}\x12\\\n" +
+	"\x06Delete\x12\x1b.ng.v1.DeleteProjectRequest\x1a\x16.google.protobuf.Empty\"\x1d\x82\xd3\xe4\x93\x02\x17*\x15/api/v1/projects/{id}2\x99\x03\n" +
+	"\vTaskService\x12I\n" +
+	"\x06Create\x12\x18.ng.v1.CreateTaskRequest\x1a\v.ng.v1.Task\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/tasks\x12E\n" +
+	"\x03Get\x12\x15.ng.v1.GetTaskRequest\x1a\v.ng.v1.Task\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/v1/tasks/{id}\x12P\n" +
+	"\x04List\x12\x17.ng.v1.ListTasksRequest\x1a\x18.ng.v1.ListTasksResponse\"\x15\x82\xd3\xe4\x93\x02\x0f\x12\r/api/v1/tasks\x12N\n" +
+	"\x06Update\x12\x18.ng.v1.UpdateTaskRequest\x1a\v.ng.v1.Task\"\x1d\x82\xd3\xe4\x93\x02\x17:\x01*\x1a\x12/api/v1/tasks/{id}\x12V\n" +
+	"\x06Delete\x12\x18.ng.v1.DeleteTaskRequest\x1a\x16.google.protobuf.Empty\"\x1a\x82\xd3\xe4\x93\x02\x14*\x12/api/v1/tasks/{id}2x\n" +
+	"\fGraphService\x12h\n" +
+	"\vListRelated\x12\x19.ng.v1.ListRelatedRequest\x1a\x1a.ng.v1.ListRelatedResponse\"\"\x82\xd3\xe4\x93\x02\x1c\x12\x1a/api/v1/graph/{id}/relatedB)Z'github.com/liamawhite/ng/api/golang;apib\x06proto3"
 
 var (
 	file_ng_proto_rawDescOnce sync.Once

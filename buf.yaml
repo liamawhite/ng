@@ -2,3 +2,5 @@ version: v2
 modules:
   - path: api/proto
     name: buf.build/liamawhite/ng
+deps:
+  - buf.build/googleapis/googleapis

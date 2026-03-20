@@ -8,6 +8,10 @@ plugins:
     out: api/golang
     opt:
       - paths=source_relative
+  - remote: buf.build/grpc-ecosystem/gateway
+    out: api/golang
+    opt:
+      - paths=source_relative
   - remote: buf.build/bufbuild/es
     out: api/ts
     opt:

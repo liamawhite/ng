@@ -18,6 +18,8 @@
             buf
             grpcurl
             golangci-lint
+            nodejs_22
+            wails
           ];
         };
       });

@@ -2,28 +2,77 @@ syntax = "proto3";
 
 package ng.v1;
 
+import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 
 option go_package = "github.com/liamawhite/ng/api/golang;api";
 
 service ProjectService {
-  rpc Create(CreateProjectRequest) returns (Project);
-  rpc Get(GetProjectRequest) returns (Project);
-  rpc List(ListProjectsRequest) returns (ListProjectsResponse);
-  rpc Update(UpdateProjectRequest) returns (Project);
-  rpc Delete(DeleteProjectRequest) returns (google.protobuf.Empty);
+  rpc Create(CreateProjectRequest) returns (Project) {
+    option (google.api.http) = {
+      post: "/api/v1/projects"
+      body: "*"
+    };
+  }
+  rpc Get(GetProjectRequest) returns (Project) {
+    option (google.api.http) = {
+      get: "/api/v1/projects/{id}"
+    };
+  }
+  rpc List(ListProjectsRequest) returns (ListProjectsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/projects"
+    };
+  }
+  rpc Update(UpdateProjectRequest) returns (Project) {
+    option (google.api.http) = {
+      put: "/api/v1/projects/{id}"
+      body: "*"
+    };
+  }
+  rpc Delete(DeleteProjectRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/projects/{id}"
+    };
+  }
 }
 
 service TaskService {
-  rpc Create(CreateTaskRequest) returns (Task);
-  rpc Get(GetTaskRequest) returns (Task);
-  rpc List(ListTasksRequest) returns (ListTasksResponse);
-  rpc Update(UpdateTaskRequest) returns (Task);
-  rpc Delete(DeleteTaskRequest) returns (google.protobuf.Empty);
+  rpc Create(CreateTaskRequest) returns (Task) {
+    option (google.api.http) = {
+      post: "/api/v1/tasks"
+      body: "*"
+    };
+  }
+  rpc Get(GetTaskRequest) returns (Task) {
+    option (google.api.http) = {
+      get: "/api/v1/tasks/{id}"
+    };
+  }
+  rpc List(ListTasksRequest) returns (ListTasksResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/tasks"
+    };
+  }
+  rpc Update(UpdateTaskRequest) returns (Task) {
+    option (google.api.http) = {
+      put: "/api/v1/tasks/{id}"
+      body: "*"
+    };
+  }
+  rpc Delete(DeleteTaskRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/tasks/{id}"
+    };
+  }
 }
 
 service GraphService {
-  rpc ListRelated(ListRelatedRequest) returns (ListRelatedResponse);
+  rpc ListRelated(ListRelatedRequest) returns (ListRelatedResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/graph/{id}/related"
+    };
+  }
 }
 
 message Project {
