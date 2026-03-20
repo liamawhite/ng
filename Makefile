@@ -37,7 +37,7 @@ frontend-build: frontend-install
 	cd frontend && npm run build
 
 frontend-dev: frontend-install
-	cd frontend && npm run dev
+	goreman start
 
 desktop-build: frontend-build
 	cd desktop && wails build
