@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { projects, type Project } from './lib/api'
+import Nav from './components/Nav'
 
 export default function App() {
   const [items, setItems] = useState<Project[]>([])
@@ -13,22 +14,24 @@ export default function App() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <p>Loading…</p>
-  if (error) return <p style={{ color: 'red' }}>Error: {error}</p>
-
   return (
-    <main style={{ fontFamily: 'sans-serif', padding: '2rem' }}>
-      <h1>ng</h1>
-      <h2>Projects</h2>
-      {items.length === 0 ? (
-        <p>No projects yet.</p>
-      ) : (
-        <ul>
-          {items.map(p => (
-            <li key={p.id}>{p.title}</li>
-          ))}
-        </ul>
-      )}
-    </main>
+    <div className="min-h-screen bg-background text-foreground">
+      <Nav />
+      <main className="p-8">
+        <h1 className="text-2xl font-bold mb-6">Projects</h1>
+        {loading && <p className="text-muted-foreground">Loading…</p>}
+        {error && <p className="text-destructive">Error: {error}</p>}
+        {!loading && !error && items.length === 0 && (
+          <p className="text-muted-foreground">No projects yet.</p>
+        )}
+        {!loading && !error && items.length > 0 && (
+          <ul className="space-y-2">
+            {items.map(p => (
+              <li key={p.id} className="text-sm">{p.title}</li>
+            ))}
+          </ul>
+        )}
+      </main>
+    </div>
   )
 }
