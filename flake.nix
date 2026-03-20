@@ -17,6 +17,7 @@
             go
             buf
             grpcurl
+            golangci-lint
           ];
         };
       });

@@ -3,7 +3,7 @@ ifndef IN_NIX_SHELL
 	nix develop --command $(MAKE) $@
 else
 
-.PHONY: generate format tidy clean
+.PHONY: generate format tidy test lint clean
 
 generate:
 	buf generate
@@ -16,6 +16,12 @@ format:
 tidy:
 	cd api/golang && go mod tidy
 	cd backend    && go mod tidy -e
+
+test:
+	cd backend && go test ./...
+
+lint:
+	cd backend && golangci-lint run ./...
 
 clean:
 	rm -rf api/golang/*
