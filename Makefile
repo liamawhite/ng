@@ -18,7 +18,7 @@ tidy:
 	cd backend    && go mod tidy -e
 
 clean:
-	rm -f api/golang/ng.pb.go api/golang/ng_grpc.pb.go
+	rm -rf api/golang/*
 	rm -rf api/ts/*
 
 endif
