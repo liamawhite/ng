@@ -1,0 +1,18 @@
+version: v2
+plugins:
+  - remote: buf.build/protocolbuffers/go
+    out: api/golang
+    opt:
+      - paths=source_relative
+  - remote: buf.build/grpc/go
+    out: api/golang
+    opt:
+      - paths=source_relative
+  - remote: buf.build/bufbuild/es
+    out: api/ts
+    opt:
+      - target=ts
+  - remote: buf.build/connectrpc/es
+    out: api/ts
+    opt:
+      - target=ts

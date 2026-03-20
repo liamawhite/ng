@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+package ng.v1;
+
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/liamawhite/ng/api/golang;api";
+
+service ProjectService {
+  rpc Create(CreateProjectRequest) returns (Project);
+  rpc Get(GetProjectRequest) returns (Project);
+  rpc List(ListProjectsRequest) returns (ListProjectsResponse);
+  rpc Update(UpdateProjectRequest) returns (Project);
+  rpc Delete(DeleteProjectRequest) returns (google.protobuf.Empty);
+}
+
+service TaskService {
+  rpc Create(CreateTaskRequest) returns (Task);
+  rpc Get(GetTaskRequest) returns (Task);
+  rpc List(ListTasksRequest) returns (ListTasksResponse);
+  rpc Update(UpdateTaskRequest) returns (Task);
+  rpc Delete(DeleteTaskRequest) returns (google.protobuf.Empty);
+}
+
+service GraphService {
+  rpc ListRelated(ListRelatedRequest) returns (ListRelatedResponse);
+}
+
+message Project {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string parent_id = 4; // empty if top-level
+}
+
+message Task {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string project_id = 4; // part_of project
+  TaskStatus status = 5;
+}
+
+enum TaskStatus {
+  TASK_STATUS_UNSPECIFIED = 0;
+  TASK_STATUS_TODO = 1;
+  TASK_STATUS_IN_PROGRESS = 2;
+  TASK_STATUS_DONE = 3;
+}
+
+// --- Project RPCs ---
+
+message CreateProjectRequest {
+  string title = 1;
+  string content = 2;
+  string parent_id = 3;
+}
+
+message GetProjectRequest {
+  string id = 1;
+}
+
+message ListProjectsRequest {
+  string parent_id = 1; // optional filter
+}
+
+message ListProjectsResponse {
+  repeated Project projects = 1;
+}
+
+message UpdateProjectRequest {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string parent_id = 4;
+}
+
+message DeleteProjectRequest {
+  string id = 1;
+}
+
+// --- Task RPCs ---
+
+message CreateTaskRequest {
+  string title = 1;
+  string content = 2;
+  string project_id = 3;
+  TaskStatus status = 4;
+}
+
+message GetTaskRequest {
+  string id = 1;
+}
+
+message ListTasksRequest {
+  string project_id = 1; // optional filter
+}
+
+message ListTasksResponse {
+  repeated Task tasks = 1;
+}
+
+message UpdateTaskRequest {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  string project_id = 4;
+  TaskStatus status = 5;
+}
+
+message DeleteTaskRequest {
+  string id = 1;
+}
+
+// --- Graph traversal ---
+
+enum Predicate {
+  PREDICATE_UNSPECIFIED = 0; // matches all predicates in ListRelated
+  PREDICATE_PART_OF = 1;
+}
+
+enum Direction {
+  DIRECTION_UNSPECIFIED = 0;
+  DIRECTION_OUTGOING = 1; // id is the source of the relationship
+  DIRECTION_INCOMING = 2; // id is the target of the relationship
+}
+
+message Entity {
+  oneof entity {
+    Project project = 1;
+    Task task = 2;
+  }
+}
+
+message ListRelatedRequest {
+  string id = 1;
+  Predicate predicate = 2; // UNSPECIFIED = all predicates
+  Direction direction = 3; // UNSPECIFIED = both directions
+}
+
+message ListRelatedResponse {
+  repeated RelatedEntity entities = 1;
+}
+
+message RelatedEntity {
+  Predicate predicate = 1; // the relationship predicate
+  Direction direction = 2; // which direction the edge runs relative to the queried id
+  Entity entity = 3; // the related entity
+}
