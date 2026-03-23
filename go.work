@@ -4,5 +4,5 @@ use (
 	./api/golang
 	./backend
 	./desktop
+	./protograph
 )
-

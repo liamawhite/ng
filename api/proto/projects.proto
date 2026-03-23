@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package ng.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "buf/validate/validate.proto";
+import "protograph/v1alpha1/options.proto";
+
+option go_package = "github.com/liamawhite/ng/api/golang;api";
+
+enum ProjectStatus {
+  PROJECT_STATUS_UNSPECIFIED = 0;
+  PROJECT_STATUS_ACTIVE      = 1;
+  PROJECT_STATUS_BACKLOG     = 2;
+  PROJECT_STATUS_BLOCKED     = 3;
+  PROJECT_STATUS_COMPLETED   = 4;
+  PROJECT_STATUS_ABANDONED   = 5;
+}
+
+service ProjectService {
+  rpc Create(CreateProjectRequest) returns (Project) {
+    option (google.api.http) = {
+      post: "/api/v1/projects"
+      body: "*"
+    };
+  }
+  rpc Get(GetProjectRequest) returns (Project) {
+    option (google.api.http) = {
+      get: "/api/v1/projects/{id}"
+    };
+  }
+  rpc List(ListProjectsRequest) returns (ListProjectsResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/projects"
+    };
+  }
+  rpc Update(UpdateProjectRequest) returns (Project) {
+    option (google.api.http) = {
+      put: "/api/v1/projects/{id}"
+      body: "*"
+    };
+  }
+  rpc Delete(DeleteProjectRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/projects/{id}"
+    };
+  }
+}
+
+message Project {
+  string        id        = 1;
+  string        title     = 2;
+  string        content   = 3;
+  string        parent_id = 4 [(protograph.v1alpha1.parent) = { type: "ng.v1.Project" }]; // empty if top-level
+  reserved      5, 6;          // canvas_x, canvas_y removed
+  ProjectStatus status    = 7;
+  string        area_id   = 8 [(protograph.v1alpha1.parent) = { type: "ng.v1.Area" }];
+}
+
+message CreateProjectRequest {
+  string        title     = 1 [(buf.validate.field).string.min_len = 1];
+  string        content   = 2;
+  string        parent_id = 3;
+  reserved      4, 5;    // canvas_x, canvas_y removed
+  ProjectStatus status    = 6;
+  string        area_id   = 7;
+}
+
+message GetProjectRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message ListProjectsRequest {
+  string        parent_id = 1; // optional filter
+  ProjectStatus status    = 2; // UNSPECIFIED = all statuses
+  string        area_id   = 3; // empty = all areas
+}
+
+message ListProjectsResponse {
+  repeated Project projects = 1;
+}
+
+message UpdateProjectRequest {
+  string        id        = 1 [(buf.validate.field).string.min_len = 1];
+  string        title     = 2 [(buf.validate.field).string.min_len = 1];
+  string        content   = 3;
+  string        parent_id = 4;
+  reserved      5, 6;    // canvas_x, canvas_y removed
+  ProjectStatus status    = 7;
+  string        area_id   = 8;
+}
+
+message DeleteProjectRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}

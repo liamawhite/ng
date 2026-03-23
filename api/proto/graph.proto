@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package ng.v1;
+
+import "google/api/annotations.proto";
+import "buf/validate/validate.proto";
+import "areas.proto";
+import "projects.proto";
+import "tasks.proto";
+
+option go_package = "github.com/liamawhite/ng/api/golang;api";
+
+service GraphService {
+  rpc ListRelated(ListRelatedRequest) returns (ListRelatedResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/graph/{id}/related"
+    };
+  }
+}
+
+enum Predicate {
+  PREDICATE_UNSPECIFIED = 0; // matches all predicates in ListRelated
+  PREDICATE_PART_OF     = 1;
+  PREDICATE_IN_AREA     = 2;
+}
+
+enum Direction {
+  DIRECTION_UNSPECIFIED = 0;
+  DIRECTION_OUTGOING    = 1; // id is the source of the relationship
+  DIRECTION_INCOMING    = 2; // id is the target of the relationship
+}
+
+message Entity {
+  oneof entity {
+    Project project = 1;
+    Task    task    = 2;
+    Area    area    = 3;
+  }
+}
+
+message ListRelatedRequest {
+  string    id        = 1 [(buf.validate.field).string.min_len = 1];
+  Predicate predicate = 2; // UNSPECIFIED = all predicates
+  Direction direction = 3; // UNSPECIFIED = both directions
+}
+
+message ListRelatedResponse {
+  repeated RelatedEntity entities = 1;
+}
+
+message RelatedEntity {
+  Predicate predicate = 1; // the relationship predicate
+  Direction direction = 2; // which direction the edge runs relative to the queried id
+  Entity    entity    = 3; // the related entity
+}

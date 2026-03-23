@@ -1,12 +1,16 @@
 package graph
 
-import "sync"
+import (
+	"sort"
+	"sync"
+)
 
 type EntityType string
 
 const (
 	EntityTypeProject EntityType = "project"
 	EntityTypeTask    EntityType = "task"
+	EntityTypeArea    EntityType = "area"
 )
 
 type Node struct {
@@ -14,7 +18,7 @@ type Node struct {
 	Type     EntityType
 	Title    string
 	Content  string
-	Status   string // tasks only
+	Status   string // "todo"/"in_progress"/"done" for tasks; "active"/"backlog"/... for projects
 	FilePath string
 }
 
@@ -117,6 +121,7 @@ func (g *Graph) ListNodes(entityType EntityType) []*Node {
 			result = append(result, n)
 		}
 	}
+	sort.Slice(result, func(i, j int) bool { return result[i].ID < result[j].ID })
 	return result
 }
 

@@ -56,9 +56,20 @@ func (w *Watcher) run() {
 			case event.Has(fsnotify.Create) || event.Has(fsnotify.Write):
 				w.reload(event.Name)
 			case event.Has(fsnotify.Remove) || event.Has(fsnotify.Rename):
-				id := fileNameToID(event.Name)
-				w.store.graph.DeleteNode(id)
-				log.Printf("watcher: removed node %s", id)
+				// Try to reload first: an atomic rename (tmp → .md) fires a
+				// Remove/Rename event on the destination even though the file is
+				// immediately replaced. If the file still exists we reload it;
+				// only delete the node when the file is truly gone.
+				node, edges, err := ParseFile(event.Name)
+				if err != nil {
+					id := fileNameToID(event.Name)
+					w.store.graph.DeleteNode(id)
+					log.Printf("watcher: removed node %s", id)
+				} else {
+					w.store.graph.UpsertNode(node)
+					w.store.graph.SetEdges(node.ID, edges)
+					log.Printf("watcher: reloaded node %s from %s", node.ID, event.Name)
+				}
 			}
 
 		case err, ok := <-w.watcher.Errors:

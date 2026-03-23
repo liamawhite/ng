@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package ng.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/liamawhite/ng/api/golang;api";
+
+service AreaService {
+  rpc Create(CreateAreaRequest) returns (Area) {
+    option (google.api.http) = {
+      post: "/api/v1/areas"
+      body: "*"
+    };
+  }
+  rpc Get(GetAreaRequest) returns (Area) {
+    option (google.api.http) = {
+      get: "/api/v1/areas/{id}"
+    };
+  }
+  rpc List(ListAreasRequest) returns (ListAreasResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/areas"
+    };
+  }
+  rpc Update(UpdateAreaRequest) returns (Area) {
+    option (google.api.http) = {
+      put: "/api/v1/areas/{id}"
+      body: "*"
+    };
+  }
+  rpc Delete(DeleteAreaRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/areas/{id}"
+    };
+  }
+}
+
+message Area {
+  string id = 1;
+  string title = 2;
+}
+
+message CreateAreaRequest { string title = 1 [(buf.validate.field).string.min_len = 1]; }
+message GetAreaRequest    { string id    = 1 [(buf.validate.field).string.min_len = 1]; }
+message ListAreasRequest  {}
+message ListAreasResponse { repeated Area areas = 1; }
+message UpdateAreaRequest {
+  string id    = 1 [(buf.validate.field).string.min_len = 1];
+  string title = 2 [(buf.validate.field).string.min_len = 1];
+}
+message DeleteAreaRequest { string id = 1 [(buf.validate.field).string.min_len = 1]; }

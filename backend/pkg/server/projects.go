@@ -23,24 +23,20 @@ func NewProjectServer(s *store.FileStore) *ProjectServer {
 }
 
 func (s *ProjectServer) Create(ctx context.Context, req *api.CreateProjectRequest) (*api.Project, error) {
-	if req.Title == "" {
-		return nil, status.Error(codes.InvalidArgument, "title is required")
-	}
 	node := &graph.Node{
 		Type:    graph.EntityTypeProject,
 		Title:   req.Title,
 		Content: req.Content,
+		Status:  projectStatusToString(req.Status),
 	}
-	if err := s.store.Create(node, partOfEdges("", req.ParentId)); err != nil {
+	edges := append(partOfEdges("", req.ParentId), inAreaEdges("", req.AreaId)...)
+	if err := s.store.Create(node, edges); err != nil {
 		return nil, status.Errorf(codes.Internal, "create project: %v", err)
 	}
 	return s.nodeToProject(node), nil
 }
 
 func (s *ProjectServer) Get(ctx context.Context, req *api.GetProjectRequest) (*api.Project, error) {
-	if req.Id == "" {
-		return nil, status.Error(codes.InvalidArgument, "id is required")
-	}
 	node, ok := s.store.Graph().GetNode(req.Id)
 	if !ok || node.Type != graph.EntityTypeProject {
 		return nil, status.Errorf(codes.NotFound, "project %q not found", req.Id)
@@ -56,15 +52,18 @@ func (s *ProjectServer) List(ctx context.Context, req *api.ListProjectsRequest) 
 		if req.ParentId != "" && p.ParentId != req.ParentId {
 			continue
 		}
+		if req.Status != api.ProjectStatus_PROJECT_STATUS_UNSPECIFIED && p.Status != req.Status {
+			continue
+		}
+		if req.AreaId != "" && p.AreaId != req.AreaId {
+			continue
+		}
 		projects = append(projects, p)
 	}
 	return &api.ListProjectsResponse{Projects: projects}, nil
 }
 
 func (s *ProjectServer) Update(ctx context.Context, req *api.UpdateProjectRequest) (*api.Project, error) {
-	if req.Id == "" {
-		return nil, status.Error(codes.InvalidArgument, "id is required")
-	}
 	existing, ok := s.store.Graph().GetNode(req.Id)
 	if !ok || existing.Type != graph.EntityTypeProject {
 		return nil, status.Errorf(codes.NotFound, "project %q not found", req.Id)
@@ -74,17 +73,16 @@ func (s *ProjectServer) Update(ctx context.Context, req *api.UpdateProjectReques
 		Type:    graph.EntityTypeProject,
 		Title:   req.Title,
 		Content: req.Content,
+		Status:  projectStatusToString(req.Status),
 	}
-	if err := s.store.Update(node, partOfEdges(req.Id, req.ParentId)); err != nil {
+	edges := append(partOfEdges(req.Id, req.ParentId), inAreaEdges(req.Id, req.AreaId)...)
+	if err := s.store.Update(node, edges); err != nil {
 		return nil, status.Errorf(codes.Internal, "update project: %v", err)
 	}
 	return s.nodeToProject(node), nil
 }
 
 func (s *ProjectServer) Delete(ctx context.Context, req *api.DeleteProjectRequest) (*emptypb.Empty, error) {
-	if req.Id == "" {
-		return nil, status.Error(codes.InvalidArgument, "id is required")
-	}
 	if _, ok := s.store.Graph().GetNode(req.Id); !ok {
 		return nil, status.Errorf(codes.NotFound, "project %q not found", req.Id)
 	}
@@ -95,11 +93,18 @@ func (s *ProjectServer) Delete(ctx context.Context, req *api.DeleteProjectReques
 }
 
 func (s *ProjectServer) nodeToProject(n *graph.Node) *api.Project {
-	p := &api.Project{Id: n.ID, Title: n.Title, Content: n.Content}
+	p := &api.Project{
+		Id:      n.ID,
+		Title:   n.Title,
+		Content: n.Content,
+		Status:  stringToProjectStatus(n.Status),
+	}
 	for _, e := range s.store.Graph().GetOutgoingEdges(n.ID) {
-		if e.Predicate == "part_of" {
+		switch e.Predicate {
+		case "part_of":
 			p.ParentId = e.TargetID
-			break
+		case "in_area":
+			p.AreaId = e.TargetID
 		}
 	}
 	return p

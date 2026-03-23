@@ -13,12 +13,18 @@ import (
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/reflect/protoreflect"
 
 	"github.com/liamawhite/ng/api/golang"
 	"github.com/liamawhite/ng/backend/pkg/graph"
 	"github.com/liamawhite/ng/backend/pkg/server"
 	"github.com/liamawhite/ng/backend/pkg/store"
+	"github.com/liamawhite/ng/protograph/pkg/gateway"
+
+	// Register the (protograph.v1alpha1.relation) extension so ExtractRelations can find it.
+	_ "github.com/liamawhite/ng/api/golang/protograph/v1alpha1"
 )
 
 func main() {
@@ -47,6 +53,7 @@ func main() {
 	}
 	defer watcher.Close()
 
+	areaServer := server.NewAreaServer(fs)
 	projectServer := server.NewProjectServer(fs)
 	taskServer := server.NewTaskServer(fs)
 	graphServer := server.NewGraphServer(fs)
@@ -57,7 +64,13 @@ func main() {
 		log.Fatalf("listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	// ValidationInterceptor runs for every unary RPC. The HTTP gateway is wired
+	// via RegisterXxxHandlerClient (see below) so HTTP requests also pass through
+	// this interceptor — at the cost of one loopback TCP round-trip per request.
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(server.ValidationInterceptor),
+	)
+	api.RegisterAreaServiceServer(grpcServer, areaServer)
 	api.RegisterProjectServiceServer(grpcServer, projectServer)
 	api.RegisterTaskServiceServer(grpcServer, taskServer)
 	api.RegisterGraphServiceServer(grpcServer, graphServer)
@@ -70,24 +83,56 @@ func main() {
 		}
 	}()
 
-	// --- HTTP gateway (in-process, no network hop) ---
+	// --- HTTP gateway (dials gRPC server so interceptors fire for HTTP too) ---
+	// Trade-off: RegisterHandlerClient routes every HTTP request through the gRPC
+	// server over loopback, adding one TCP round-trip. The alternative,
+	// RegisterHandlerServer (direct call, no hop), bypasses interceptors entirely.
+	// For a local tool the loopback cost is negligible; revisit for high-throughput
+	// deployments.
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	grpcAddr := fmt.Sprintf("localhost:%d", *port)
+	conn, err := grpc.NewClient(grpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("dial gRPC for gateway: %v", err)
+	}
+	defer conn.Close()
+
 	gwMux := runtime.NewServeMux()
-	if err := api.RegisterProjectServiceHandlerServer(ctx, gwMux, projectServer); err != nil {
+	if err := api.RegisterAreaServiceHandlerClient(ctx, gwMux, api.NewAreaServiceClient(conn)); err != nil {
+		log.Fatalf("register area gateway: %v", err)
+	}
+	if err := api.RegisterProjectServiceHandlerClient(ctx, gwMux, api.NewProjectServiceClient(conn)); err != nil {
 		log.Fatalf("register project gateway: %v", err)
 	}
-	if err := api.RegisterTaskServiceHandlerServer(ctx, gwMux, taskServer); err != nil {
+	if err := api.RegisterTaskServiceHandlerClient(ctx, gwMux, api.NewTaskServiceClient(conn)); err != nil {
 		log.Fatalf("register task gateway: %v", err)
 	}
-	if err := api.RegisterGraphServiceHandlerServer(ctx, gwMux, graphServer); err != nil {
+	if err := api.RegisterGraphServiceHandlerClient(ctx, gwMux, api.NewGraphServiceClient(conn)); err != nil {
 		log.Fatalf("register graph gateway: %v", err)
 	}
 
+	pg, err := gateway.New([]gateway.ServiceRegistration{{
+		Conn: conn,
+		Files: []protoreflect.FileDescriptor{
+			api.File_areas_proto,
+			api.File_projects_proto,
+			api.File_tasks_proto,
+			api.File_graph_proto,
+		},
+	}})
+	if err != nil {
+		log.Fatalf("create protograph gateway: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/api/", gwMux)
+	mux.Handle("/protograph/v1alpha1/", pg)
+
 	httpServer := &http.Server{
 		Addr:    fmt.Sprintf(":%d", *httpPort),
-		Handler: corsMiddleware(gwMux),
+		Handler: corsMiddleware(mux),
 	}
 
 	go func() {

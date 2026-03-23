@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package protograph.v1alpha1;
+
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/liamawhite/ng/api/golang/protograph/v1alpha1;protographv1alpha1";
+
+// ParentRef declares that a field is a foreign-key reference to another proto
+// message type. The protograph gateway uses this to automatically fan-out and
+// stitch child entities onto parent responses.
+//
+// Fields 3-6 are optional overrides for when the default naming conventions
+// ({TypeName}Service, "List", "Get") do not apply.
+message ParentRef {
+  // Fully-qualified parent message type, e.g. "ng.v1.Area". Required.
+  string type         = 1;
+  // Filter field name in the child's List request, e.g. "area_id".
+  // Defaults to the annotated field's own name when omitted.
+  string via          = 2;
+  // Service to call when listing children.
+  // Defaults to {pkg}.{ChildTypeName}Service when omitted.
+  string list_service = 3;
+  // Method to call when listing children.
+  // Defaults to "List" when omitted.
+  string list_method  = 4;
+  // Service to call when fetching the parent.
+  // Defaults to {pkg}.{ParentTypeName}Service when omitted.
+  string get_service  = 5;
+  // Method to call when fetching the parent.
+  // Defaults to "Get" when omitted.
+  string get_method   = 6;
+}
+
+extend google.protobuf.FieldOptions {
+  ParentRef parent = 50000;
+}

@@ -23,9 +23,6 @@ func NewTaskServer(s *store.FileStore) *TaskServer {
 }
 
 func (s *TaskServer) Create(ctx context.Context, req *api.CreateTaskRequest) (*api.Task, error) {
-	if req.Title == "" {
-		return nil, status.Error(codes.InvalidArgument, "title is required")
-	}
 	node := &graph.Node{
 		Type:    graph.EntityTypeTask,
 		Title:   req.Title,
@@ -39,9 +36,6 @@ func (s *TaskServer) Create(ctx context.Context, req *api.CreateTaskRequest) (*a
 }
 
 func (s *TaskServer) Get(ctx context.Context, req *api.GetTaskRequest) (*api.Task, error) {
-	if req.Id == "" {
-		return nil, status.Error(codes.InvalidArgument, "id is required")
-	}
 	node, ok := s.store.Graph().GetNode(req.Id)
 	if !ok || node.Type != graph.EntityTypeTask {
 		return nil, status.Errorf(codes.NotFound, "task %q not found", req.Id)
@@ -63,9 +57,6 @@ func (s *TaskServer) List(ctx context.Context, req *api.ListTasksRequest) (*api.
 }
 
 func (s *TaskServer) Update(ctx context.Context, req *api.UpdateTaskRequest) (*api.Task, error) {
-	if req.Id == "" {
-		return nil, status.Error(codes.InvalidArgument, "id is required")
-	}
 	existing, ok := s.store.Graph().GetNode(req.Id)
 	if !ok || existing.Type != graph.EntityTypeTask {
 		return nil, status.Errorf(codes.NotFound, "task %q not found", req.Id)
@@ -84,9 +75,6 @@ func (s *TaskServer) Update(ctx context.Context, req *api.UpdateTaskRequest) (*a
 }
 
 func (s *TaskServer) Delete(ctx context.Context, req *api.DeleteTaskRequest) (*emptypb.Empty, error) {
-	if req.Id == "" {
-		return nil, status.Error(codes.InvalidArgument, "id is required")
-	}
 	if _, ok := s.store.Graph().GetNode(req.Id); !ok {
 		return nil, status.Errorf(codes.NotFound, "task %q not found", req.Id)
 	}

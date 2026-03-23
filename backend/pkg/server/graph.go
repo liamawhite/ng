@@ -4,9 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/liamawhite/ng/api/golang"
 	"github.com/liamawhite/ng/backend/pkg/graph"
 	"github.com/liamawhite/ng/backend/pkg/store"
@@ -23,10 +20,6 @@ func NewGraphServer(s *store.FileStore) *GraphServer {
 }
 
 func (s *GraphServer) ListRelated(ctx context.Context, req *api.ListRelatedRequest) (*api.ListRelatedResponse, error) {
-	if req.Id == "" {
-		return nil, status.Error(codes.InvalidArgument, "id is required")
-	}
-
 	related := s.store.Graph().ListRelated(
 		req.Id,
 		protoPredicateToString(req.Predicate),
@@ -56,6 +49,8 @@ func (s *GraphServer) nodeToEntity(n *graph.Node) (*api.Entity, error) {
 	case graph.EntityTypeTask:
 		ts := &TaskServer{store: s.store}
 		return &api.Entity{Entity: &api.Entity_Task{Task: ts.nodeToTask(n)}}, nil
+	case graph.EntityTypeArea:
+		return &api.Entity{Entity: &api.Entity_Area{Area: nodeToArea(n)}}, nil
 	default:
 		return nil, fmt.Errorf("unknown entity type: %s", n.Type)
 	}

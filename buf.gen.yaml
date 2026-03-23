@@ -20,3 +20,5 @@ plugins:
     out: api/ts
     opt:
       - target=ts
+  - local: protograph/cmd/protograph-gen-ts/protograph-gen-ts
+    out: api/ts

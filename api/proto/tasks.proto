@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package ng.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "buf/validate/validate.proto";
+import "protograph/v1alpha1/options.proto";
+
+option go_package = "github.com/liamawhite/ng/api/golang;api";
+
+enum TaskStatus {
+  TASK_STATUS_UNSPECIFIED = 0;
+  TASK_STATUS_TODO        = 1;
+  TASK_STATUS_IN_PROGRESS = 2;
+  TASK_STATUS_DONE        = 3;
+}
+
+service TaskService {
+  rpc Create(CreateTaskRequest) returns (Task) {
+    option (google.api.http) = {
+      post: "/api/v1/tasks"
+      body: "*"
+    };
+  }
+  rpc Get(GetTaskRequest) returns (Task) {
+    option (google.api.http) = {
+      get: "/api/v1/tasks/{id}"
+    };
+  }
+  rpc List(ListTasksRequest) returns (ListTasksResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/tasks"
+    };
+  }
+  rpc Update(UpdateTaskRequest) returns (Task) {
+    option (google.api.http) = {
+      put: "/api/v1/tasks/{id}"
+      body: "*"
+    };
+  }
+  rpc Delete(DeleteTaskRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/api/v1/tasks/{id}"
+    };
+  }
+}
+
+message Task {
+  string     id         = 1;
+  string     title      = 2;
+  string     content    = 3;
+  string     project_id = 4 [(protograph.v1alpha1.parent) = { type: "ng.v1.Project" }]; // part_of project
+  TaskStatus status     = 5;
+  reserved   6, 7;            // canvas_x, canvas_y removed
+}
+
+message CreateTaskRequest {
+  string     title      = 1 [(buf.validate.field).string.min_len = 1];
+  string     content    = 2;
+  string     project_id = 3;
+  TaskStatus status     = 4;
+  reserved   5, 6;      // canvas_x, canvas_y removed
+}
+
+message GetTaskRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message ListTasksRequest {
+  string project_id = 1; // optional filter
+}
+
+message ListTasksResponse {
+  repeated Task tasks = 1;
+}
+
+message UpdateTaskRequest {
+  string     id         = 1 [(buf.validate.field).string.min_len = 1];
+  string     title      = 2 [(buf.validate.field).string.min_len = 1];
+  string     content    = 3;
+  string     project_id = 4;
+  TaskStatus status     = 5;
+  reserved   6, 7;      // canvas_x, canvas_y removed
+}
+
+message DeleteTaskRequest {
+  string id = 1 [(buf.validate.field).string.min_len = 1];
+}

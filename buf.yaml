@@ -4,3 +4,4 @@ modules:
     name: buf.build/liamawhite/ng
 deps:
   - buf.build/googleapis/googleapis
+  - buf.build/bufbuild/protovalidate
