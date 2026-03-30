@@ -22,6 +22,9 @@ enum Predicate {
   PREDICATE_UNSPECIFIED = 0; // matches all predicates in ListRelated
   PREDICATE_PART_OF     = 1;
   PREDICATE_IN_AREA     = 2;
+  PREDICATE_TASK        = 3; // project → task
+  PREDICATE_SUBTASK     = 4; // task → subtask
+  PREDICATE_SUBPROJECT  = 5; // project → subproject
 }
 
 enum Direction {

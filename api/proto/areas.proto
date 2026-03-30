@@ -4,6 +4,7 @@ package ng.v1;
 
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
 import "buf/validate/validate.proto";
 
 option go_package = "github.com/liamawhite/ng/api/golang;api";
@@ -39,16 +40,22 @@ service AreaService {
 }
 
 message Area {
-  string id = 1;
+  string id    = 1;
   string title = 2;
+  string color = 3;
 }
 
-message CreateAreaRequest { string title = 1 [(buf.validate.field).string.min_len = 1]; }
+message CreateAreaRequest {
+  string title = 1 [(buf.validate.field).string.min_len = 1];
+  string color = 2;
+}
 message GetAreaRequest    { string id    = 1 [(buf.validate.field).string.min_len = 1]; }
 message ListAreasRequest  {}
 message ListAreasResponse { repeated Area areas = 1; }
 message UpdateAreaRequest {
-  string id    = 1 [(buf.validate.field).string.min_len = 1];
-  string title = 2 [(buf.validate.field).string.min_len = 1];
+  string                    id          = 1 [(buf.validate.field).string.min_len = 1];
+  string                    title       = 2;
+  string                    color       = 3;
+  google.protobuf.FieldMask update_mask = 4 [(buf.validate.field).required = true];
 }
 message DeleteAreaRequest { string id = 1 [(buf.validate.field).string.min_len = 1]; }

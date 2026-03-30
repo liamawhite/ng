@@ -13,6 +13,8 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -83,21 +85,181 @@ func (ProjectStatus) EnumDescriptor() ([]byte, []int) {
 	return file_projects_proto_rawDescGZIP(), []int{0}
 }
 
-type Project struct {
+type EffortUnit int32
+
+const (
+	EffortUnit_EFFORT_UNIT_UNSPECIFIED EffortUnit = 0
+	EffortUnit_EFFORT_UNIT_DAYS        EffortUnit = 1
+	EffortUnit_EFFORT_UNIT_WEEKS       EffortUnit = 2
+	EffortUnit_EFFORT_UNIT_MONTHS      EffortUnit = 3
+)
+
+// Enum value maps for EffortUnit.
+var (
+	EffortUnit_name = map[int32]string{
+		0: "EFFORT_UNIT_UNSPECIFIED",
+		1: "EFFORT_UNIT_DAYS",
+		2: "EFFORT_UNIT_WEEKS",
+		3: "EFFORT_UNIT_MONTHS",
+	}
+	EffortUnit_value = map[string]int32{
+		"EFFORT_UNIT_UNSPECIFIED": 0,
+		"EFFORT_UNIT_DAYS":        1,
+		"EFFORT_UNIT_WEEKS":       2,
+		"EFFORT_UNIT_MONTHS":      3,
+	}
+)
+
+func (x EffortUnit) Enum() *EffortUnit {
+	p := new(EffortUnit)
+	*p = x
+	return p
+}
+
+func (x EffortUnit) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (EffortUnit) Descriptor() protoreflect.EnumDescriptor {
+	return file_projects_proto_enumTypes[1].Descriptor()
+}
+
+func (EffortUnit) Type() protoreflect.EnumType {
+	return &file_projects_proto_enumTypes[1]
+}
+
+func (x EffortUnit) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use EffortUnit.Descriptor instead.
+func (EffortUnit) EnumDescriptor() ([]byte, []int) {
+	return file_projects_proto_rawDescGZIP(), []int{1}
+}
+
+type Effort struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	ParentId      string                 `protobuf:"bytes,4,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"` // empty if top-level
-	Status        ProjectStatus          `protobuf:"varint,7,opt,name=status,proto3,enum=ng.v1.ProjectStatus" json:"status,omitempty"`
-	AreaId        string                 `protobuf:"bytes,8,opt,name=area_id,json=areaId,proto3" json:"area_id,omitempty"`
+	Value         int32                  `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
+	Unit          EffortUnit             `protobuf:"varint,2,opt,name=unit,proto3,enum=ng.v1.EffortUnit" json:"unit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *Effort) Reset() {
+	*x = Effort{}
+	mi := &file_projects_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Effort) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Effort) ProtoMessage() {}
+
+func (x *Effort) ProtoReflect() protoreflect.Message {
+	mi := &file_projects_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Effort.ProtoReflect.Descriptor instead.
+func (*Effort) Descriptor() ([]byte, []int) {
+	return file_projects_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *Effort) GetValue() int32 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
+func (x *Effort) GetUnit() EffortUnit {
+	if x != nil {
+		return x.Unit
+	}
+	return EffortUnit_EFFORT_UNIT_UNSPECIFIED
+}
+
+type Link struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Url           string                 `protobuf:"bytes,1,opt,name=url,proto3" json:"url,omitempty"`
+	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Link) Reset() {
+	*x = Link{}
+	mi := &file_projects_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Link) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Link) ProtoMessage() {}
+
+func (x *Link) ProtoReflect() protoreflect.Message {
+	mi := &file_projects_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Link.ProtoReflect.Descriptor instead.
+func (*Link) Descriptor() ([]byte, []int) {
+	return file_projects_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Link) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
+func (x *Link) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+type Project struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title           string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Content         string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	ParentId        string                 `protobuf:"bytes,4,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"` // empty if top-level
+	Status          ProjectStatus          `protobuf:"varint,7,opt,name=status,proto3,enum=ng.v1.ProjectStatus" json:"status,omitempty"`
+	AreaId          string                 `protobuf:"bytes,8,opt,name=area_id,json=areaId,proto3" json:"area_id,omitempty"`
+	Completed       *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=completed,proto3" json:"completed,omitempty"`
+	EstimatedEffort *Effort                `protobuf:"bytes,10,opt,name=estimated_effort,json=estimatedEffort,proto3,oneof" json:"estimated_effort,omitempty"`
+	Links           []*Link                `protobuf:"bytes,11,rep,name=links,proto3" json:"links,omitempty"`
+	Priority        Priority               `protobuf:"varint,12,opt,name=priority,proto3,enum=ng.v1.Priority" json:"priority,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
 func (x *Project) Reset() {
 	*x = Project{}
-	mi := &file_projects_proto_msgTypes[0]
+	mi := &file_projects_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -109,7 +271,7 @@ func (x *Project) String() string {
 func (*Project) ProtoMessage() {}
 
 func (x *Project) ProtoReflect() protoreflect.Message {
-	mi := &file_projects_proto_msgTypes[0]
+	mi := &file_projects_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -122,7 +284,7 @@ func (x *Project) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Project.ProtoReflect.Descriptor instead.
 func (*Project) Descriptor() ([]byte, []int) {
-	return file_projects_proto_rawDescGZIP(), []int{0}
+	return file_projects_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Project) GetId() string {
@@ -167,20 +329,51 @@ func (x *Project) GetAreaId() string {
 	return ""
 }
 
+func (x *Project) GetCompleted() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Completed
+	}
+	return nil
+}
+
+func (x *Project) GetEstimatedEffort() *Effort {
+	if x != nil {
+		return x.EstimatedEffort
+	}
+	return nil
+}
+
+func (x *Project) GetLinks() []*Link {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+func (x *Project) GetPriority() Priority {
+	if x != nil {
+		return x.Priority
+	}
+	return Priority_PRIORITY_UNSPECIFIED
+}
+
 type CreateProjectRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
-	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
-	ParentId      string                 `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
-	Status        ProjectStatus          `protobuf:"varint,6,opt,name=status,proto3,enum=ng.v1.ProjectStatus" json:"status,omitempty"`
-	AreaId        string                 `protobuf:"bytes,7,opt,name=area_id,json=areaId,proto3" json:"area_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Title           string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Content         string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
+	ParentId        string                 `protobuf:"bytes,3,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	Status          ProjectStatus          `protobuf:"varint,6,opt,name=status,proto3,enum=ng.v1.ProjectStatus" json:"status,omitempty"`
+	AreaId          string                 `protobuf:"bytes,7,opt,name=area_id,json=areaId,proto3" json:"area_id,omitempty"`
+	EstimatedEffort *Effort                `protobuf:"bytes,9,opt,name=estimated_effort,json=estimatedEffort,proto3,oneof" json:"estimated_effort,omitempty"`
+	Links           []*Link                `protobuf:"bytes,10,rep,name=links,proto3" json:"links,omitempty"`
+	Priority        Priority               `protobuf:"varint,11,opt,name=priority,proto3,enum=ng.v1.Priority" json:"priority,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *CreateProjectRequest) Reset() {
 	*x = CreateProjectRequest{}
-	mi := &file_projects_proto_msgTypes[1]
+	mi := &file_projects_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -192,7 +385,7 @@ func (x *CreateProjectRequest) String() string {
 func (*CreateProjectRequest) ProtoMessage() {}
 
 func (x *CreateProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_projects_proto_msgTypes[1]
+	mi := &file_projects_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -205,7 +398,7 @@ func (x *CreateProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateProjectRequest.ProtoReflect.Descriptor instead.
 func (*CreateProjectRequest) Descriptor() ([]byte, []int) {
-	return file_projects_proto_rawDescGZIP(), []int{1}
+	return file_projects_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CreateProjectRequest) GetTitle() string {
@@ -243,6 +436,27 @@ func (x *CreateProjectRequest) GetAreaId() string {
 	return ""
 }
 
+func (x *CreateProjectRequest) GetEstimatedEffort() *Effort {
+	if x != nil {
+		return x.EstimatedEffort
+	}
+	return nil
+}
+
+func (x *CreateProjectRequest) GetLinks() []*Link {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+func (x *CreateProjectRequest) GetPriority() Priority {
+	if x != nil {
+		return x.Priority
+	}
+	return Priority_PRIORITY_UNSPECIFIED
+}
+
 type GetProjectRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -252,7 +466,7 @@ type GetProjectRequest struct {
 
 func (x *GetProjectRequest) Reset() {
 	*x = GetProjectRequest{}
-	mi := &file_projects_proto_msgTypes[2]
+	mi := &file_projects_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -264,7 +478,7 @@ func (x *GetProjectRequest) String() string {
 func (*GetProjectRequest) ProtoMessage() {}
 
 func (x *GetProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_projects_proto_msgTypes[2]
+	mi := &file_projects_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -277,7 +491,7 @@ func (x *GetProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetProjectRequest.ProtoReflect.Descriptor instead.
 func (*GetProjectRequest) Descriptor() ([]byte, []int) {
-	return file_projects_proto_rawDescGZIP(), []int{2}
+	return file_projects_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetProjectRequest) GetId() string {
@@ -298,7 +512,7 @@ type ListProjectsRequest struct {
 
 func (x *ListProjectsRequest) Reset() {
 	*x = ListProjectsRequest{}
-	mi := &file_projects_proto_msgTypes[3]
+	mi := &file_projects_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -310,7 +524,7 @@ func (x *ListProjectsRequest) String() string {
 func (*ListProjectsRequest) ProtoMessage() {}
 
 func (x *ListProjectsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_projects_proto_msgTypes[3]
+	mi := &file_projects_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -323,7 +537,7 @@ func (x *ListProjectsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectsRequest.ProtoReflect.Descriptor instead.
 func (*ListProjectsRequest) Descriptor() ([]byte, []int) {
-	return file_projects_proto_rawDescGZIP(), []int{3}
+	return file_projects_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ListProjectsRequest) GetParentId() string {
@@ -356,7 +570,7 @@ type ListProjectsResponse struct {
 
 func (x *ListProjectsResponse) Reset() {
 	*x = ListProjectsResponse{}
-	mi := &file_projects_proto_msgTypes[4]
+	mi := &file_projects_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -368,7 +582,7 @@ func (x *ListProjectsResponse) String() string {
 func (*ListProjectsResponse) ProtoMessage() {}
 
 func (x *ListProjectsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_projects_proto_msgTypes[4]
+	mi := &file_projects_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -381,7 +595,7 @@ func (x *ListProjectsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListProjectsResponse.ProtoReflect.Descriptor instead.
 func (*ListProjectsResponse) Descriptor() ([]byte, []int) {
-	return file_projects_proto_rawDescGZIP(), []int{4}
+	return file_projects_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ListProjectsResponse) GetProjects() []*Project {
@@ -392,20 +606,24 @@ func (x *ListProjectsResponse) GetProjects() []*Project {
 }
 
 type UpdateProjectRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	ParentId      string                 `protobuf:"bytes,4,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
-	Status        ProjectStatus          `protobuf:"varint,7,opt,name=status,proto3,enum=ng.v1.ProjectStatus" json:"status,omitempty"`
-	AreaId        string                 `protobuf:"bytes,8,opt,name=area_id,json=areaId,proto3" json:"area_id,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title           string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Content         string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	ParentId        string                 `protobuf:"bytes,4,opt,name=parent_id,json=parentId,proto3" json:"parent_id,omitempty"`
+	Status          ProjectStatus          `protobuf:"varint,7,opt,name=status,proto3,enum=ng.v1.ProjectStatus" json:"status,omitempty"`
+	AreaId          string                 `protobuf:"bytes,8,opt,name=area_id,json=areaId,proto3" json:"area_id,omitempty"`
+	UpdateMask      *fieldmaskpb.FieldMask `protobuf:"bytes,10,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	EstimatedEffort *Effort                `protobuf:"bytes,11,opt,name=estimated_effort,json=estimatedEffort,proto3,oneof" json:"estimated_effort,omitempty"`
+	Links           []*Link                `protobuf:"bytes,12,rep,name=links,proto3" json:"links,omitempty"`
+	Priority        Priority               `protobuf:"varint,13,opt,name=priority,proto3,enum=ng.v1.Priority" json:"priority,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *UpdateProjectRequest) Reset() {
 	*x = UpdateProjectRequest{}
-	mi := &file_projects_proto_msgTypes[5]
+	mi := &file_projects_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -417,7 +635,7 @@ func (x *UpdateProjectRequest) String() string {
 func (*UpdateProjectRequest) ProtoMessage() {}
 
 func (x *UpdateProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_projects_proto_msgTypes[5]
+	mi := &file_projects_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -430,7 +648,7 @@ func (x *UpdateProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateProjectRequest.ProtoReflect.Descriptor instead.
 func (*UpdateProjectRequest) Descriptor() ([]byte, []int) {
-	return file_projects_proto_rawDescGZIP(), []int{5}
+	return file_projects_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *UpdateProjectRequest) GetId() string {
@@ -475,6 +693,34 @@ func (x *UpdateProjectRequest) GetAreaId() string {
 	return ""
 }
 
+func (x *UpdateProjectRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.UpdateMask
+	}
+	return nil
+}
+
+func (x *UpdateProjectRequest) GetEstimatedEffort() *Effort {
+	if x != nil {
+		return x.EstimatedEffort
+	}
+	return nil
+}
+
+func (x *UpdateProjectRequest) GetLinks() []*Link {
+	if x != nil {
+		return x.Links
+	}
+	return nil
+}
+
+func (x *UpdateProjectRequest) GetPriority() Priority {
+	if x != nil {
+		return x.Priority
+	}
+	return Priority_PRIORITY_UNSPECIFIED
+}
+
 type DeleteProjectRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -484,7 +730,7 @@ type DeleteProjectRequest struct {
 
 func (x *DeleteProjectRequest) Reset() {
 	*x = DeleteProjectRequest{}
-	mi := &file_projects_proto_msgTypes[6]
+	mi := &file_projects_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -496,7 +742,7 @@ func (x *DeleteProjectRequest) String() string {
 func (*DeleteProjectRequest) ProtoMessage() {}
 
 func (x *DeleteProjectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_projects_proto_msgTypes[6]
+	mi := &file_projects_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -509,7 +755,7 @@ func (x *DeleteProjectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteProjectRequest.ProtoReflect.Descriptor instead.
 func (*DeleteProjectRequest) Descriptor() ([]byte, []int) {
-	return file_projects_proto_rawDescGZIP(), []int{6}
+	return file_projects_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *DeleteProjectRequest) GetId() string {
@@ -523,7 +769,13 @@ var File_projects_proto protoreflect.FileDescriptor
 
 const file_projects_proto_rawDesc = "" +
 	"\n" +
-	"\x0eprojects.proto\x12\x05ng.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1bbuf/validate/validate.proto\x1a!protograph/v1alpha1/options.proto\"\xe0\x01\n" +
+	"\x0eprojects.proto\x12\x05ng.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bbuf/validate/validate.proto\x1a!protograph/v1alpha1/options.proto\x1a\fcommon.proto\"E\n" +
+	"\x06Effort\x12\x14\n" +
+	"\x05value\x18\x01 \x01(\x05R\x05value\x12%\n" +
+	"\x04unit\x18\x02 \x01(\x0e2\x11.ng.v1.EffortUnitR\x04unit\".\n" +
+	"\x04Link\x12\x10\n" +
+	"\x03url\x18\x01 \x01(\tR\x03url\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\"\xc3\x03\n" +
 	"\aProject\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
@@ -533,13 +785,24 @@ const file_projects_proto_rawDesc = "" +
 	"\x06status\x18\a \x01(\x0e2\x14.ng.v1.ProjectStatusR\x06status\x12)\n" +
 	"\aarea_id\x18\b \x01(\tB\x10\x82\xb5\x18\f\n" +
 	"\n" +
-	"ng.v1.AreaR\x06areaIdJ\x04\b\x05\x10\x06J\x04\b\x06\x10\a\"\xbf\x01\n" +
+	"ng.v1.AreaR\x06areaId\x12=\n" +
+	"\tcompleted\x18\t \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\tcompleted\x12=\n" +
+	"\x10estimated_effort\x18\n" +
+	" \x01(\v2\r.ng.v1.EffortH\x00R\x0festimatedEffort\x88\x01\x01\x12!\n" +
+	"\x05links\x18\v \x03(\v2\v.ng.v1.LinkR\x05links\x12+\n" +
+	"\bpriority\x18\f \x01(\x0e2\x0f.ng.v1.PriorityR\bpriorityB\x13\n" +
+	"\x11_estimated_effortJ\x04\b\x05\x10\x06J\x04\b\x06\x10\a\"\xe9\x02\n" +
 	"\x14CreateProjectRequest\x12\x1d\n" +
 	"\x05title\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05title\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1b\n" +
 	"\tparent_id\x18\x03 \x01(\tR\bparentId\x12,\n" +
 	"\x06status\x18\x06 \x01(\x0e2\x14.ng.v1.ProjectStatusR\x06status\x12\x17\n" +
-	"\aarea_id\x18\a \x01(\tR\x06areaIdJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06\",\n" +
+	"\aarea_id\x18\a \x01(\tR\x06areaId\x12=\n" +
+	"\x10estimated_effort\x18\t \x01(\v2\r.ng.v1.EffortH\x00R\x0festimatedEffort\x88\x01\x01\x12!\n" +
+	"\x05links\x18\n" +
+	" \x03(\v2\v.ng.v1.LinkR\x05links\x12+\n" +
+	"\bpriority\x18\v \x01(\x0e2\x0f.ng.v1.PriorityR\bpriorityB\x13\n" +
+	"\x11_estimated_effortJ\x04\b\x04\x10\x05J\x04\b\x05\x10\x06J\x04\b\b\x10\t\",\n" +
 	"\x11GetProjectRequest\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\"y\n" +
 	"\x13ListProjectsRequest\x12\x1b\n" +
@@ -547,14 +810,22 @@ const file_projects_proto_rawDesc = "" +
 	"\x06status\x18\x02 \x01(\x0e2\x14.ng.v1.ProjectStatusR\x06status\x12\x17\n" +
 	"\aarea_id\x18\x03 \x01(\tR\x06areaId\"B\n" +
 	"\x14ListProjectsResponse\x12*\n" +
-	"\bprojects\x18\x01 \x03(\v2\x0e.ng.v1.ProjectR\bprojects\"\xd8\x01\n" +
+	"\bprojects\x18\x01 \x03(\v2\x0e.ng.v1.ProjectR\bprojects\"\xbe\x03\n" +
 	"\x14UpdateProjectRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\x12\x1d\n" +
-	"\x05title\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05title\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1b\n" +
 	"\tparent_id\x18\x04 \x01(\tR\bparentId\x12,\n" +
 	"\x06status\x18\a \x01(\x0e2\x14.ng.v1.ProjectStatusR\x06status\x12\x17\n" +
-	"\aarea_id\x18\b \x01(\tR\x06areaIdJ\x04\b\x05\x10\x06J\x04\b\x06\x10\a\"/\n" +
+	"\aarea_id\x18\b \x01(\tR\x06areaId\x12C\n" +
+	"\vupdate_mask\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
+	"updateMask\x12=\n" +
+	"\x10estimated_effort\x18\v \x01(\v2\r.ng.v1.EffortH\x00R\x0festimatedEffort\x88\x01\x01\x12!\n" +
+	"\x05links\x18\f \x03(\v2\v.ng.v1.LinkR\x05links\x12+\n" +
+	"\bpriority\x18\r \x01(\x0e2\x0f.ng.v1.PriorityR\bpriorityB\x13\n" +
+	"\x11_estimated_effortJ\x04\b\x05\x10\x06J\x04\b\x06\x10\aJ\x04\b\t\x10\n" +
+	"\"/\n" +
 	"\x14DeleteProjectRequest\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id*\xbe\x01\n" +
 	"\rProjectStatus\x12\x1e\n" +
@@ -563,7 +834,13 @@ const file_projects_proto_rawDesc = "" +
 	"\x16PROJECT_STATUS_BACKLOG\x10\x02\x12\x1a\n" +
 	"\x16PROJECT_STATUS_BLOCKED\x10\x03\x12\x1c\n" +
 	"\x18PROJECT_STATUS_COMPLETED\x10\x04\x12\x1c\n" +
-	"\x18PROJECT_STATUS_ABANDONED\x10\x052\xc6\x03\n" +
+	"\x18PROJECT_STATUS_ABANDONED\x10\x05*n\n" +
+	"\n" +
+	"EffortUnit\x12\x1b\n" +
+	"\x17EFFORT_UNIT_UNSPECIFIED\x10\x00\x12\x14\n" +
+	"\x10EFFORT_UNIT_DAYS\x10\x01\x12\x15\n" +
+	"\x11EFFORT_UNIT_WEEKS\x10\x02\x12\x16\n" +
+	"\x12EFFORT_UNIT_MONTHS\x10\x032\xc6\x03\n" +
 	"\x0eProjectService\x12R\n" +
 	"\x06Create\x12\x1b.ng.v1.CreateProjectRequest\x1a\x0e.ng.v1.Project\"\x1b\x82\xd3\xe4\x93\x02\x15:\x01*\"\x10/api/v1/projects\x12N\n" +
 	"\x03Get\x12\x18.ng.v1.GetProjectRequest\x1a\x0e.ng.v1.Project\"\x1d\x82\xd3\xe4\x93\x02\x17\x12\x15/api/v1/projects/{id}\x12Y\n" +
@@ -583,40 +860,58 @@ func file_projects_proto_rawDescGZIP() []byte {
 	return file_projects_proto_rawDescData
 }
 
-var file_projects_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_projects_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_projects_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_projects_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_projects_proto_goTypes = []any{
-	(ProjectStatus)(0),           // 0: ng.v1.ProjectStatus
-	(*Project)(nil),              // 1: ng.v1.Project
-	(*CreateProjectRequest)(nil), // 2: ng.v1.CreateProjectRequest
-	(*GetProjectRequest)(nil),    // 3: ng.v1.GetProjectRequest
-	(*ListProjectsRequest)(nil),  // 4: ng.v1.ListProjectsRequest
-	(*ListProjectsResponse)(nil), // 5: ng.v1.ListProjectsResponse
-	(*UpdateProjectRequest)(nil), // 6: ng.v1.UpdateProjectRequest
-	(*DeleteProjectRequest)(nil), // 7: ng.v1.DeleteProjectRequest
-	(*emptypb.Empty)(nil),        // 8: google.protobuf.Empty
+	(ProjectStatus)(0),            // 0: ng.v1.ProjectStatus
+	(EffortUnit)(0),               // 1: ng.v1.EffortUnit
+	(*Effort)(nil),                // 2: ng.v1.Effort
+	(*Link)(nil),                  // 3: ng.v1.Link
+	(*Project)(nil),               // 4: ng.v1.Project
+	(*CreateProjectRequest)(nil),  // 5: ng.v1.CreateProjectRequest
+	(*GetProjectRequest)(nil),     // 6: ng.v1.GetProjectRequest
+	(*ListProjectsRequest)(nil),   // 7: ng.v1.ListProjectsRequest
+	(*ListProjectsResponse)(nil),  // 8: ng.v1.ListProjectsResponse
+	(*UpdateProjectRequest)(nil),  // 9: ng.v1.UpdateProjectRequest
+	(*DeleteProjectRequest)(nil),  // 10: ng.v1.DeleteProjectRequest
+	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
+	(Priority)(0),                 // 12: ng.v1.Priority
+	(*fieldmaskpb.FieldMask)(nil), // 13: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),         // 14: google.protobuf.Empty
 }
 var file_projects_proto_depIdxs = []int32{
-	0,  // 0: ng.v1.Project.status:type_name -> ng.v1.ProjectStatus
-	0,  // 1: ng.v1.CreateProjectRequest.status:type_name -> ng.v1.ProjectStatus
-	0,  // 2: ng.v1.ListProjectsRequest.status:type_name -> ng.v1.ProjectStatus
-	1,  // 3: ng.v1.ListProjectsResponse.projects:type_name -> ng.v1.Project
-	0,  // 4: ng.v1.UpdateProjectRequest.status:type_name -> ng.v1.ProjectStatus
-	2,  // 5: ng.v1.ProjectService.Create:input_type -> ng.v1.CreateProjectRequest
-	3,  // 6: ng.v1.ProjectService.Get:input_type -> ng.v1.GetProjectRequest
-	4,  // 7: ng.v1.ProjectService.List:input_type -> ng.v1.ListProjectsRequest
-	6,  // 8: ng.v1.ProjectService.Update:input_type -> ng.v1.UpdateProjectRequest
-	7,  // 9: ng.v1.ProjectService.Delete:input_type -> ng.v1.DeleteProjectRequest
-	1,  // 10: ng.v1.ProjectService.Create:output_type -> ng.v1.Project
-	1,  // 11: ng.v1.ProjectService.Get:output_type -> ng.v1.Project
-	5,  // 12: ng.v1.ProjectService.List:output_type -> ng.v1.ListProjectsResponse
-	1,  // 13: ng.v1.ProjectService.Update:output_type -> ng.v1.Project
-	8,  // 14: ng.v1.ProjectService.Delete:output_type -> google.protobuf.Empty
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	1,  // 0: ng.v1.Effort.unit:type_name -> ng.v1.EffortUnit
+	0,  // 1: ng.v1.Project.status:type_name -> ng.v1.ProjectStatus
+	11, // 2: ng.v1.Project.completed:type_name -> google.protobuf.Timestamp
+	2,  // 3: ng.v1.Project.estimated_effort:type_name -> ng.v1.Effort
+	3,  // 4: ng.v1.Project.links:type_name -> ng.v1.Link
+	12, // 5: ng.v1.Project.priority:type_name -> ng.v1.Priority
+	0,  // 6: ng.v1.CreateProjectRequest.status:type_name -> ng.v1.ProjectStatus
+	2,  // 7: ng.v1.CreateProjectRequest.estimated_effort:type_name -> ng.v1.Effort
+	3,  // 8: ng.v1.CreateProjectRequest.links:type_name -> ng.v1.Link
+	12, // 9: ng.v1.CreateProjectRequest.priority:type_name -> ng.v1.Priority
+	0,  // 10: ng.v1.ListProjectsRequest.status:type_name -> ng.v1.ProjectStatus
+	4,  // 11: ng.v1.ListProjectsResponse.projects:type_name -> ng.v1.Project
+	0,  // 12: ng.v1.UpdateProjectRequest.status:type_name -> ng.v1.ProjectStatus
+	13, // 13: ng.v1.UpdateProjectRequest.update_mask:type_name -> google.protobuf.FieldMask
+	2,  // 14: ng.v1.UpdateProjectRequest.estimated_effort:type_name -> ng.v1.Effort
+	3,  // 15: ng.v1.UpdateProjectRequest.links:type_name -> ng.v1.Link
+	12, // 16: ng.v1.UpdateProjectRequest.priority:type_name -> ng.v1.Priority
+	5,  // 17: ng.v1.ProjectService.Create:input_type -> ng.v1.CreateProjectRequest
+	6,  // 18: ng.v1.ProjectService.Get:input_type -> ng.v1.GetProjectRequest
+	7,  // 19: ng.v1.ProjectService.List:input_type -> ng.v1.ListProjectsRequest
+	9,  // 20: ng.v1.ProjectService.Update:input_type -> ng.v1.UpdateProjectRequest
+	10, // 21: ng.v1.ProjectService.Delete:input_type -> ng.v1.DeleteProjectRequest
+	4,  // 22: ng.v1.ProjectService.Create:output_type -> ng.v1.Project
+	4,  // 23: ng.v1.ProjectService.Get:output_type -> ng.v1.Project
+	8,  // 24: ng.v1.ProjectService.List:output_type -> ng.v1.ListProjectsResponse
+	4,  // 25: ng.v1.ProjectService.Update:output_type -> ng.v1.Project
+	14, // 26: ng.v1.ProjectService.Delete:output_type -> google.protobuf.Empty
+	22, // [22:27] is the sub-list for method output_type
+	17, // [17:22] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_projects_proto_init() }
@@ -624,13 +919,17 @@ func file_projects_proto_init() {
 	if File_projects_proto != nil {
 		return
 	}
+	file_common_proto_init()
+	file_projects_proto_msgTypes[2].OneofWrappers = []any{}
+	file_projects_proto_msgTypes[3].OneofWrappers = []any{}
+	file_projects_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_projects_proto_rawDesc), len(file_projects_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   7,
+			NumEnums:      2,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

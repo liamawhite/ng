@@ -13,6 +13,8 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -32,6 +34,7 @@ const (
 	TaskStatus_TASK_STATUS_TODO        TaskStatus = 1
 	TaskStatus_TASK_STATUS_IN_PROGRESS TaskStatus = 2
 	TaskStatus_TASK_STATUS_DONE        TaskStatus = 3
+	TaskStatus_TASK_STATUS_BLOCKED     TaskStatus = 4
 )
 
 // Enum value maps for TaskStatus.
@@ -41,12 +44,14 @@ var (
 		1: "TASK_STATUS_TODO",
 		2: "TASK_STATUS_IN_PROGRESS",
 		3: "TASK_STATUS_DONE",
+		4: "TASK_STATUS_BLOCKED",
 	}
 	TaskStatus_value = map[string]int32{
 		"TASK_STATUS_UNSPECIFIED": 0,
 		"TASK_STATUS_TODO":        1,
 		"TASK_STATUS_IN_PROGRESS": 2,
 		"TASK_STATUS_DONE":        3,
+		"TASK_STATUS_BLOCKED":     4,
 	}
 )
 
@@ -84,6 +89,10 @@ type Task struct {
 	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
 	ProjectId     string                 `protobuf:"bytes,4,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"` // part_of project
 	Status        TaskStatus             `protobuf:"varint,5,opt,name=status,proto3,enum=ng.v1.TaskStatus" json:"status,omitempty"`
+	ParentTaskId  string                 `protobuf:"bytes,8,opt,name=parent_task_id,json=parentTaskId,proto3" json:"parent_task_id,omitempty"` // optional parent task (subtask nesting)
+	Completed     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=completed,proto3" json:"completed,omitempty"`
+	Pinned        bool                   `protobuf:"varint,10,opt,name=pinned,proto3" json:"pinned,omitempty"`
+	Priority      Priority               `protobuf:"varint,11,opt,name=priority,proto3,enum=ng.v1.Priority" json:"priority,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -153,12 +162,43 @@ func (x *Task) GetStatus() TaskStatus {
 	return TaskStatus_TASK_STATUS_UNSPECIFIED
 }
 
+func (x *Task) GetParentTaskId() string {
+	if x != nil {
+		return x.ParentTaskId
+	}
+	return ""
+}
+
+func (x *Task) GetCompleted() *timestamppb.Timestamp {
+	if x != nil {
+		return x.Completed
+	}
+	return nil
+}
+
+func (x *Task) GetPinned() bool {
+	if x != nil {
+		return x.Pinned
+	}
+	return false
+}
+
+func (x *Task) GetPriority() Priority {
+	if x != nil {
+		return x.Priority
+	}
+	return Priority_PRIORITY_UNSPECIFIED
+}
+
 type CreateTaskRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
 	Content       string                 `protobuf:"bytes,2,opt,name=content,proto3" json:"content,omitempty"`
 	ProjectId     string                 `protobuf:"bytes,3,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
 	Status        TaskStatus             `protobuf:"varint,4,opt,name=status,proto3,enum=ng.v1.TaskStatus" json:"status,omitempty"`
+	ParentTaskId  string                 `protobuf:"bytes,7,opt,name=parent_task_id,json=parentTaskId,proto3" json:"parent_task_id,omitempty"`
+	Pinned        bool                   `protobuf:"varint,9,opt,name=pinned,proto3" json:"pinned,omitempty"`
+	Priority      Priority               `protobuf:"varint,10,opt,name=priority,proto3,enum=ng.v1.Priority" json:"priority,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -221,6 +261,27 @@ func (x *CreateTaskRequest) GetStatus() TaskStatus {
 	return TaskStatus_TASK_STATUS_UNSPECIFIED
 }
 
+func (x *CreateTaskRequest) GetParentTaskId() string {
+	if x != nil {
+		return x.ParentTaskId
+	}
+	return ""
+}
+
+func (x *CreateTaskRequest) GetPinned() bool {
+	if x != nil {
+		return x.Pinned
+	}
+	return false
+}
+
+func (x *CreateTaskRequest) GetPriority() Priority {
+	if x != nil {
+		return x.Priority
+	}
+	return Priority_PRIORITY_UNSPECIFIED
+}
+
 type GetTaskRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -267,7 +328,9 @@ func (x *GetTaskRequest) GetId() string {
 
 type ListTasksRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	ProjectId     string                 `protobuf:"bytes,1,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"` // optional filter
+	ProjectId     string                 `protobuf:"bytes,1,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`            // optional filter
+	ParentTaskId  string                 `protobuf:"bytes,2,opt,name=parent_task_id,json=parentTaskId,proto3" json:"parent_task_id,omitempty"` // optional filter
+	Pinned        *bool                  `protobuf:"varint,3,opt,name=pinned,proto3,oneof" json:"pinned,omitempty"`                            // optional filter; when true returns only pinned tasks
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -307,6 +370,20 @@ func (x *ListTasksRequest) GetProjectId() string {
 		return x.ProjectId
 	}
 	return ""
+}
+
+func (x *ListTasksRequest) GetParentTaskId() string {
+	if x != nil {
+		return x.ParentTaskId
+	}
+	return ""
+}
+
+func (x *ListTasksRequest) GetPinned() bool {
+	if x != nil && x.Pinned != nil {
+		return *x.Pinned
+	}
+	return false
 }
 
 type ListTasksResponse struct {
@@ -360,6 +437,10 @@ type UpdateTaskRequest struct {
 	Content       string                 `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
 	ProjectId     string                 `protobuf:"bytes,4,opt,name=project_id,json=projectId,proto3" json:"project_id,omitempty"`
 	Status        TaskStatus             `protobuf:"varint,5,opt,name=status,proto3,enum=ng.v1.TaskStatus" json:"status,omitempty"`
+	ParentTaskId  string                 `protobuf:"bytes,8,opt,name=parent_task_id,json=parentTaskId,proto3" json:"parent_task_id,omitempty"`
+	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,10,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
+	Pinned        bool                   `protobuf:"varint,11,opt,name=pinned,proto3" json:"pinned,omitempty"`
+	Priority      Priority               `protobuf:"varint,12,opt,name=priority,proto3,enum=ng.v1.Priority" json:"priority,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -429,6 +510,34 @@ func (x *UpdateTaskRequest) GetStatus() TaskStatus {
 	return TaskStatus_TASK_STATUS_UNSPECIFIED
 }
 
+func (x *UpdateTaskRequest) GetParentTaskId() string {
+	if x != nil {
+		return x.ParentTaskId
+	}
+	return ""
+}
+
+func (x *UpdateTaskRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.UpdateMask
+	}
+	return nil
+}
+
+func (x *UpdateTaskRequest) GetPinned() bool {
+	if x != nil {
+		return x.Pinned
+	}
+	return false
+}
+
+func (x *UpdateTaskRequest) GetPriority() Priority {
+	if x != nil {
+		return x.Priority
+	}
+	return Priority_PRIORITY_UNSPECIFIED
+}
+
 type DeleteTaskRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -477,7 +586,7 @@ var File_tasks_proto protoreflect.FileDescriptor
 
 const file_tasks_proto_rawDesc = "" +
 	"\n" +
-	"\vtasks.proto\x12\x05ng.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1bbuf/validate/validate.proto\x1a!protograph/v1alpha1/options.proto\"\xb1\x01\n" +
+	"\vtasks.proto\x12\x05ng.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1bbuf/validate/validate.proto\x1a!protograph/v1alpha1/options.proto\x1a\fcommon.proto\"\xed\x02\n" +
 	"\x04Task\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
@@ -485,35 +594,57 @@ const file_tasks_proto_rawDesc = "" +
 	"\n" +
 	"project_id\x18\x04 \x01(\tB\x13\x82\xb5\x18\x0f\n" +
 	"\rng.v1.ProjectR\tprojectId\x12)\n" +
-	"\x06status\x18\x05 \x01(\x0e2\x11.ng.v1.TaskStatusR\x06statusJ\x04\b\x06\x10\aJ\x04\b\a\x10\b\"\xa2\x01\n" +
+	"\x06status\x18\x05 \x01(\x0e2\x11.ng.v1.TaskStatusR\x06status\x126\n" +
+	"\x0eparent_task_id\x18\b \x01(\tB\x10\x82\xb5\x18\f\n" +
+	"\n" +
+	"ng.v1.TaskR\fparentTaskId\x12=\n" +
+	"\tcompleted\x18\t \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\tcompleted\x12\x16\n" +
+	"\x06pinned\x18\n" +
+	" \x01(\bR\x06pinned\x12+\n" +
+	"\bpriority\x18\v \x01(\x0e2\x0f.ng.v1.PriorityR\bpriorityJ\x04\b\x06\x10\aJ\x04\b\a\x10\b\"\x93\x02\n" +
 	"\x11CreateTaskRequest\x12\x1d\n" +
 	"\x05title\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05title\x12\x18\n" +
 	"\acontent\x18\x02 \x01(\tR\acontent\x12\x1d\n" +
 	"\n" +
 	"project_id\x18\x03 \x01(\tR\tprojectId\x12)\n" +
-	"\x06status\x18\x04 \x01(\x0e2\x11.ng.v1.TaskStatusR\x06statusJ\x04\b\x05\x10\x06J\x04\b\x06\x10\a\")\n" +
+	"\x06status\x18\x04 \x01(\x0e2\x11.ng.v1.TaskStatusR\x06status\x12$\n" +
+	"\x0eparent_task_id\x18\a \x01(\tR\fparentTaskId\x12\x16\n" +
+	"\x06pinned\x18\t \x01(\bR\x06pinned\x12+\n" +
+	"\bpriority\x18\n" +
+	" \x01(\x0e2\x0f.ng.v1.PriorityR\bpriorityJ\x04\b\x05\x10\x06J\x04\b\x06\x10\aJ\x04\b\b\x10\t\")\n" +
 	"\x0eGetTaskRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\"1\n" +
+	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\"\x7f\n" +
 	"\x10ListTasksRequest\x12\x1d\n" +
 	"\n" +
-	"project_id\x18\x01 \x01(\tR\tprojectId\"6\n" +
+	"project_id\x18\x01 \x01(\tR\tprojectId\x12$\n" +
+	"\x0eparent_task_id\x18\x02 \x01(\tR\fparentTaskId\x12\x1b\n" +
+	"\x06pinned\x18\x03 \x01(\bH\x00R\x06pinned\x88\x01\x01B\t\n" +
+	"\a_pinned\"6\n" +
 	"\x11ListTasksResponse\x12!\n" +
-	"\x05tasks\x18\x01 \x03(\v2\v.ng.v1.TaskR\x05tasks\"\xbb\x01\n" +
+	"\x05tasks\x18\x01 \x03(\v2\v.ng.v1.TaskR\x05tasks\"\xe8\x02\n" +
 	"\x11UpdateTaskRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\x12\x1d\n" +
-	"\x05title\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05title\x12\x18\n" +
+	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1d\n" +
 	"\n" +
 	"project_id\x18\x04 \x01(\tR\tprojectId\x12)\n" +
-	"\x06status\x18\x05 \x01(\x0e2\x11.ng.v1.TaskStatusR\x06statusJ\x04\b\x06\x10\aJ\x04\b\a\x10\b\",\n" +
+	"\x06status\x18\x05 \x01(\x0e2\x11.ng.v1.TaskStatusR\x06status\x12$\n" +
+	"\x0eparent_task_id\x18\b \x01(\tR\fparentTaskId\x12C\n" +
+	"\vupdate_mask\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
+	"updateMask\x12\x16\n" +
+	"\x06pinned\x18\v \x01(\bR\x06pinned\x12+\n" +
+	"\bpriority\x18\f \x01(\x0e2\x0f.ng.v1.PriorityR\bpriorityJ\x04\b\x06\x10\aJ\x04\b\a\x10\bJ\x04\b\t\x10\n" +
+	"\",\n" +
 	"\x11DeleteTaskRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id*r\n" +
+	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id*\x8b\x01\n" +
 	"\n" +
 	"TaskStatus\x12\x1b\n" +
 	"\x17TASK_STATUS_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10TASK_STATUS_TODO\x10\x01\x12\x1b\n" +
 	"\x17TASK_STATUS_IN_PROGRESS\x10\x02\x12\x14\n" +
-	"\x10TASK_STATUS_DONE\x10\x032\x99\x03\n" +
+	"\x10TASK_STATUS_DONE\x10\x03\x12\x17\n" +
+	"\x13TASK_STATUS_BLOCKED\x10\x042\x99\x03\n" +
 	"\vTaskService\x12I\n" +
 	"\x06Create\x12\x18.ng.v1.CreateTaskRequest\x1a\v.ng.v1.Task\"\x18\x82\xd3\xe4\x93\x02\x12:\x01*\"\r/api/v1/tasks\x12E\n" +
 	"\x03Get\x12\x15.ng.v1.GetTaskRequest\x1a\v.ng.v1.Task\"\x1a\x82\xd3\xe4\x93\x02\x14\x12\x12/api/v1/tasks/{id}\x12P\n" +
@@ -536,36 +667,44 @@ func file_tasks_proto_rawDescGZIP() []byte {
 var file_tasks_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_tasks_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_tasks_proto_goTypes = []any{
-	(TaskStatus)(0),           // 0: ng.v1.TaskStatus
-	(*Task)(nil),              // 1: ng.v1.Task
-	(*CreateTaskRequest)(nil), // 2: ng.v1.CreateTaskRequest
-	(*GetTaskRequest)(nil),    // 3: ng.v1.GetTaskRequest
-	(*ListTasksRequest)(nil),  // 4: ng.v1.ListTasksRequest
-	(*ListTasksResponse)(nil), // 5: ng.v1.ListTasksResponse
-	(*UpdateTaskRequest)(nil), // 6: ng.v1.UpdateTaskRequest
-	(*DeleteTaskRequest)(nil), // 7: ng.v1.DeleteTaskRequest
-	(*emptypb.Empty)(nil),     // 8: google.protobuf.Empty
+	(TaskStatus)(0),               // 0: ng.v1.TaskStatus
+	(*Task)(nil),                  // 1: ng.v1.Task
+	(*CreateTaskRequest)(nil),     // 2: ng.v1.CreateTaskRequest
+	(*GetTaskRequest)(nil),        // 3: ng.v1.GetTaskRequest
+	(*ListTasksRequest)(nil),      // 4: ng.v1.ListTasksRequest
+	(*ListTasksResponse)(nil),     // 5: ng.v1.ListTasksResponse
+	(*UpdateTaskRequest)(nil),     // 6: ng.v1.UpdateTaskRequest
+	(*DeleteTaskRequest)(nil),     // 7: ng.v1.DeleteTaskRequest
+	(*timestamppb.Timestamp)(nil), // 8: google.protobuf.Timestamp
+	(Priority)(0),                 // 9: ng.v1.Priority
+	(*fieldmaskpb.FieldMask)(nil), // 10: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),         // 11: google.protobuf.Empty
 }
 var file_tasks_proto_depIdxs = []int32{
-	0, // 0: ng.v1.Task.status:type_name -> ng.v1.TaskStatus
-	0, // 1: ng.v1.CreateTaskRequest.status:type_name -> ng.v1.TaskStatus
-	1, // 2: ng.v1.ListTasksResponse.tasks:type_name -> ng.v1.Task
-	0, // 3: ng.v1.UpdateTaskRequest.status:type_name -> ng.v1.TaskStatus
-	2, // 4: ng.v1.TaskService.Create:input_type -> ng.v1.CreateTaskRequest
-	3, // 5: ng.v1.TaskService.Get:input_type -> ng.v1.GetTaskRequest
-	4, // 6: ng.v1.TaskService.List:input_type -> ng.v1.ListTasksRequest
-	6, // 7: ng.v1.TaskService.Update:input_type -> ng.v1.UpdateTaskRequest
-	7, // 8: ng.v1.TaskService.Delete:input_type -> ng.v1.DeleteTaskRequest
-	1, // 9: ng.v1.TaskService.Create:output_type -> ng.v1.Task
-	1, // 10: ng.v1.TaskService.Get:output_type -> ng.v1.Task
-	5, // 11: ng.v1.TaskService.List:output_type -> ng.v1.ListTasksResponse
-	1, // 12: ng.v1.TaskService.Update:output_type -> ng.v1.Task
-	8, // 13: ng.v1.TaskService.Delete:output_type -> google.protobuf.Empty
-	9, // [9:14] is the sub-list for method output_type
-	4, // [4:9] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	0,  // 0: ng.v1.Task.status:type_name -> ng.v1.TaskStatus
+	8,  // 1: ng.v1.Task.completed:type_name -> google.protobuf.Timestamp
+	9,  // 2: ng.v1.Task.priority:type_name -> ng.v1.Priority
+	0,  // 3: ng.v1.CreateTaskRequest.status:type_name -> ng.v1.TaskStatus
+	9,  // 4: ng.v1.CreateTaskRequest.priority:type_name -> ng.v1.Priority
+	1,  // 5: ng.v1.ListTasksResponse.tasks:type_name -> ng.v1.Task
+	0,  // 6: ng.v1.UpdateTaskRequest.status:type_name -> ng.v1.TaskStatus
+	10, // 7: ng.v1.UpdateTaskRequest.update_mask:type_name -> google.protobuf.FieldMask
+	9,  // 8: ng.v1.UpdateTaskRequest.priority:type_name -> ng.v1.Priority
+	2,  // 9: ng.v1.TaskService.Create:input_type -> ng.v1.CreateTaskRequest
+	3,  // 10: ng.v1.TaskService.Get:input_type -> ng.v1.GetTaskRequest
+	4,  // 11: ng.v1.TaskService.List:input_type -> ng.v1.ListTasksRequest
+	6,  // 12: ng.v1.TaskService.Update:input_type -> ng.v1.UpdateTaskRequest
+	7,  // 13: ng.v1.TaskService.Delete:input_type -> ng.v1.DeleteTaskRequest
+	1,  // 14: ng.v1.TaskService.Create:output_type -> ng.v1.Task
+	1,  // 15: ng.v1.TaskService.Get:output_type -> ng.v1.Task
+	5,  // 16: ng.v1.TaskService.List:output_type -> ng.v1.ListTasksResponse
+	1,  // 17: ng.v1.TaskService.Update:output_type -> ng.v1.Task
+	11, // 18: ng.v1.TaskService.Delete:output_type -> google.protobuf.Empty
+	14, // [14:19] is the sub-list for method output_type
+	9,  // [9:14] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_tasks_proto_init() }
@@ -573,6 +712,8 @@ func file_tasks_proto_init() {
 	if File_tasks_proto != nil {
 		return
 	}
+	file_common_proto_init()
+	file_tasks_proto_msgTypes[3].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

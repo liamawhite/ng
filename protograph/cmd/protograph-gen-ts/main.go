@@ -109,11 +109,11 @@ func generateFile(f *descriptorpb.FileDescriptorProto, allFiles map[string]*desc
 		return "", nil
 	}
 
-	// Collect relations from (protograph.v1alpha1.parent) field annotations.
-	// relations: parentType → fieldName → relationMeta
+	// Collect relations from (protograph.v1alpha1.edge) field annotations.
+	// relations: targetType → fieldName → relationMeta
 	relations := make(map[string]map[string]relationMeta)
 	for _, msg := range f.MessageType {
-		collectParentAnnotations(msg, pkg, relations)
+		collectEdgeAnnotations(msg, pkg, relations)
 	}
 
 	var sb strings.Builder
@@ -148,12 +148,12 @@ func generateFile(f *descriptorpb.FileDescriptorProto, allFiles map[string]*desc
 	return sb.String(), nil
 }
 
-// collectParentAnnotations walks message fields looking for (protograph.v1alpha1.parent)
+// collectEdgeAnnotations walks message fields looking for (protograph.v1alpha1.edge)
 // annotations and populates the relations map.
-func collectParentAnnotations(msg *descriptorpb.DescriptorProto, pkg string, relations map[string]map[string]relationMeta) {
+func collectEdgeAnnotations(msg *descriptorpb.DescriptorProto, pkg string, relations map[string]map[string]relationMeta) {
 	msgFullName := pkg + "." + msg.GetName()
 	for _, field := range msg.Field {
-		ref := extractParentOption(field)
+		ref := extractEdgeOption(field)
 		if ref == nil {
 			continue
 		}
@@ -168,22 +168,22 @@ func collectParentAnnotations(msg *descriptorpb.DescriptorProto, pkg string, rel
 		}
 	}
 	for _, nested := range msg.NestedType {
-		collectParentAnnotations(nested, pkg+"."+msg.GetName(), relations)
+		collectEdgeAnnotations(nested, pkg+"."+msg.GetName(), relations)
 	}
 }
 
-type parentRefDecoded struct {
-	Type        string // parent message type, e.g. "ng.v1.Area"
+type edgeRefDecoded struct {
+	Type        string // target message type, e.g. "ng.v1.Area"
 	Via         string // filter field in ListRequest; empty = use FK field name
 	ListService string // service for listing children; empty = {pkg}.{ChildType}Service
 	ListMethod  string // method for listing children; empty = "List"
-	GetService  string // service for getting parent; empty = {pkg}.{ParentType}Service
-	GetMethod   string // method for getting parent; empty = "Get"
+	GetService  string // service for getting target; empty = {pkg}.{TargetType}Service
+	GetMethod   string // method for getting target; empty = "Get"
 }
 
-// extractParentOption reads the (protograph.v1alpha1.parent) ParentRef message
+// extractEdgeOption reads the (protograph.v1alpha1.edge) EdgeRef message
 // from FieldOptions raw bytes.
-func extractParentOption(field *descriptorpb.FieldDescriptorProto) *parentRefDecoded {
+func extractEdgeOption(field *descriptorpb.FieldDescriptorProto) *edgeRefDecoded {
 	opts := field.GetOptions()
 	if opts == nil {
 		return nil
@@ -192,16 +192,16 @@ func extractParentOption(field *descriptorpb.FieldDescriptorProto) *parentRefDec
 	if len(raw) == 0 {
 		return nil
 	}
-	// field 50000 is a ParentRef message (wire type 2).
+	// field 50000 is an EdgeRef message (wire type 2).
 	data := extractFieldBytes(raw, parentExtensionFieldNumber)
 	if len(data) == 0 {
 		return nil
 	}
-	return decodeParentRef(data)
+	return decodeEdgeRef(data)
 }
 
-func decodeParentRef(b []byte) *parentRefDecoded {
-	out := &parentRefDecoded{}
+func decodeEdgeRef(b []byte) *edgeRefDecoded {
+	out := &edgeRefDecoded{}
 	i := 0
 	for i < len(b) {
 		tag, n := consumeVarint(b[i:])

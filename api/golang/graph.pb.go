@@ -29,6 +29,9 @@ const (
 	Predicate_PREDICATE_UNSPECIFIED Predicate = 0 // matches all predicates in ListRelated
 	Predicate_PREDICATE_PART_OF     Predicate = 1
 	Predicate_PREDICATE_IN_AREA     Predicate = 2
+	Predicate_PREDICATE_TASK        Predicate = 3 // project → task
+	Predicate_PREDICATE_SUBTASK     Predicate = 4 // task → subtask
+	Predicate_PREDICATE_SUBPROJECT  Predicate = 5 // project → subproject
 )
 
 // Enum value maps for Predicate.
@@ -37,11 +40,17 @@ var (
 		0: "PREDICATE_UNSPECIFIED",
 		1: "PREDICATE_PART_OF",
 		2: "PREDICATE_IN_AREA",
+		3: "PREDICATE_TASK",
+		4: "PREDICATE_SUBTASK",
+		5: "PREDICATE_SUBPROJECT",
 	}
 	Predicate_value = map[string]int32{
 		"PREDICATE_UNSPECIFIED": 0,
 		"PREDICATE_PART_OF":     1,
 		"PREDICATE_IN_AREA":     2,
+		"PREDICATE_TASK":        3,
+		"PREDICATE_SUBTASK":     4,
+		"PREDICATE_SUBPROJECT":  5,
 	}
 )
 
@@ -402,11 +411,14 @@ const file_graph_proto_rawDesc = "" +
 	"\rRelatedEntity\x12.\n" +
 	"\tpredicate\x18\x01 \x01(\x0e2\x10.ng.v1.PredicateR\tpredicate\x12.\n" +
 	"\tdirection\x18\x02 \x01(\x0e2\x10.ng.v1.DirectionR\tdirection\x12%\n" +
-	"\x06entity\x18\x03 \x01(\v2\r.ng.v1.EntityR\x06entity*T\n" +
+	"\x06entity\x18\x03 \x01(\v2\r.ng.v1.EntityR\x06entity*\x99\x01\n" +
 	"\tPredicate\x12\x19\n" +
 	"\x15PREDICATE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11PREDICATE_PART_OF\x10\x01\x12\x15\n" +
-	"\x11PREDICATE_IN_AREA\x10\x02*V\n" +
+	"\x11PREDICATE_IN_AREA\x10\x02\x12\x12\n" +
+	"\x0ePREDICATE_TASK\x10\x03\x12\x15\n" +
+	"\x11PREDICATE_SUBTASK\x10\x04\x12\x18\n" +
+	"\x14PREDICATE_SUBPROJECT\x10\x05*V\n" +
 	"\tDirection\x12\x19\n" +
 	"\x15DIRECTION_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12DIRECTION_OUTGOING\x10\x01\x12\x16\n" +

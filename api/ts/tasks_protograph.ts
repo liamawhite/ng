@@ -9,6 +9,11 @@ export interface TaskFields {
   content?: Record<string, never>;
   projectId?: Record<string, never>;
   status?: Record<string, never>;
+  parentTaskId?: Record<string, never>;
+  completed?: TimestampFields;
+  pinned?: Record<string, never>;
+  priority?: Record<string, never>;
+  tasks?: TaskFields;
 }
 
 export interface CreateTaskRequestFields {
@@ -16,6 +21,9 @@ export interface CreateTaskRequestFields {
   content?: Record<string, never>;
   projectId?: Record<string, never>;
   status?: Record<string, never>;
+  parentTaskId?: Record<string, never>;
+  pinned?: Record<string, never>;
+  priority?: Record<string, never>;
 }
 
 export interface GetTaskRequestFields {
@@ -24,6 +32,8 @@ export interface GetTaskRequestFields {
 
 export interface ListTasksRequestFields {
   projectId?: Record<string, never>;
+  parentTaskId?: Record<string, never>;
+  pinned?: Record<string, never>;
 }
 
 export interface ListTasksResponseFields {
@@ -36,6 +46,10 @@ export interface UpdateTaskRequestFields {
   content?: Record<string, never>;
   projectId?: Record<string, never>;
   status?: Record<string, never>;
+  parentTaskId?: Record<string, never>;
+  updateMask?: FieldMaskFields;
+  pinned?: Record<string, never>;
+  priority?: Record<string, never>;
 }
 
 export interface DeleteTaskRequestFields {
@@ -48,6 +62,11 @@ export interface TaskResult {
   content?: string;
   projectId?: string;
   status?: number;
+  parentTaskId?: string;
+  completed?: TimestampResult;
+  pinned?: boolean;
+  priority?: number;
+  tasks?: TaskResult[];
 }
 
 export interface CreateTaskRequestResult {
@@ -55,6 +74,9 @@ export interface CreateTaskRequestResult {
   content?: string;
   projectId?: string;
   status?: number;
+  parentTaskId?: string;
+  pinned?: boolean;
+  priority?: number;
 }
 
 export interface GetTaskRequestResult {
@@ -63,6 +85,8 @@ export interface GetTaskRequestResult {
 
 export interface ListTasksRequestResult {
   projectId?: string;
+  parentTaskId?: string;
+  pinned?: boolean;
 }
 
 export interface ListTasksResponseResult {
@@ -75,6 +99,10 @@ export interface UpdateTaskRequestResult {
   content?: string;
   projectId?: string;
   status?: number;
+  parentTaskId?: string;
+  updateMask?: FieldMaskResult;
+  pinned?: boolean;
+  priority?: number;
 }
 
 export interface DeleteTaskRequestResult {

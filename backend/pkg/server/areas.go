@@ -26,6 +26,7 @@ func (s *AreaServer) Create(ctx context.Context, req *api.CreateAreaRequest) (*a
 	node := &graph.Node{
 		Type:  graph.EntityTypeArea,
 		Title: req.Title,
+		Color: req.Color,
 	}
 	if err := s.store.Create(node, nil); err != nil {
 		return nil, status.Errorf(codes.Internal, "create area: %v", err)
@@ -58,7 +59,19 @@ func (s *AreaServer) Update(ctx context.Context, req *api.UpdateAreaRequest) (*a
 	node := &graph.Node{
 		ID:    req.Id,
 		Type:  graph.EntityTypeArea,
-		Title: req.Title,
+		Title: existing.Title,
+		Color: existing.Color,
+	}
+	for _, path := range req.UpdateMask.Paths {
+		switch path {
+		case "title":
+			if req.Title == "" {
+				return nil, status.Errorf(codes.InvalidArgument, "title cannot be empty")
+			}
+			node.Title = req.Title
+		case "color":
+			node.Color = req.Color
+		}
 	}
 	if err := s.store.Update(node, nil); err != nil {
 		return nil, status.Errorf(codes.Internal, "update area: %v", err)
@@ -77,5 +90,5 @@ func (s *AreaServer) Delete(ctx context.Context, req *api.DeleteAreaRequest) (*e
 }
 
 func nodeToArea(n *graph.Node) *api.Area {
-	return &api.Area{Id: n.ID, Title: n.Title}
+	return &api.Area{Id: n.ID, Title: n.Title, Color: n.Color}
 }

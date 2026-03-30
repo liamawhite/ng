@@ -3,6 +3,7 @@ package graph
 import (
 	"sort"
 	"sync"
+	"time"
 )
 
 type EntityType string
@@ -13,13 +14,25 @@ const (
 	EntityTypeArea    EntityType = "area"
 )
 
+type Link struct {
+	URL   string
+	Title string
+}
+
 type Node struct {
-	ID       string
-	Type     EntityType
-	Title    string
-	Content  string
-	Status   string // "todo"/"in_progress"/"done" for tasks; "active"/"backlog"/... for projects
-	FilePath string
+	ID          string
+	Type        EntityType
+	Title       string
+	Content     string
+	Status      string // "todo"/"in_progress"/"done" for tasks; "active"/"backlog"/... for projects
+	Color       string // hex color, e.g. "#4c00ff" (areas only)
+	FilePath    string
+	CompletedAt  *time.Time // optional; when the task/project was completed
+	EffortValue  int32      // 0 = unset
+	EffortUnit   string     // "days" | "weeks" | "months" | ""
+	Links        []Link
+	Priority     int32      // 1-5; 0 means unset (treated as 4)
+	Pinned       bool
 }
 
 type Edge struct {
@@ -107,6 +120,16 @@ func (g *Graph) GetOutgoingEdges(id string) []Edge {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 	edges := g.outgoing[id]
+	result := make([]Edge, len(edges))
+	copy(result, edges)
+	return result
+}
+
+// GetIncomingEdges returns the incoming edges for a node.
+func (g *Graph) GetIncomingEdges(id string) []Edge {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	edges := g.incoming[id]
 	result := make([]Edge, len(edges))
 	copy(result, edges)
 	return result

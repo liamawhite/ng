@@ -21,13 +21,13 @@ Protograph collapses this into a single request. The gateway handles all fan-out
 
 ### The annotation
 
-Relations are declared on the foreign-key field of the child entity using `(protograph.v1alpha1.parent)`:
+Relations are declared on the foreign-key field of the child entity using `(protograph.v1alpha1.edge)`:
 
 ```protobuf
 import "protograph/v1alpha1/options.proto";
 
 message Task {
-  string project_id = 4 [(protograph.v1alpha1.parent) = { type: "ng.v1.Project" }];
+  string project_id = 4 [(protograph.v1alpha1.edge) = { type: "ng.v1.Project" }];
 }
 ```
 
@@ -35,8 +35,8 @@ One annotation encodes **two** traversal directions:
 
 | Direction | Derived call | Result |
 |-----------|-------------|--------|
-| Forward (parent → children) | `TaskService.List(project_id=X)` once per parent | stitches `tasks: [...]` onto each Project |
-| Reverse (child → parent) | `ProjectService.Get(id=task.project_id)` once per unique FK | stitches `project: {...}` onto each Task |
+| Forward (target → children) | `TaskService.List(project_id=X)` once per target | stitches `tasks: [...]` onto each Project |
+| Reverse (child → target) | `ProjectService.Get(id=task.project_id)` once per unique FK | stitches `project: {...}` onto each Task |
 
 No dedicated batch RPCs to implement. The gateway drives the existing `List` and `Get` methods.
 
@@ -48,14 +48,14 @@ The gateway derives everything from the type name when fields 3–6 are absent:
 |-----------------|---------|
 | `list_service` | `{pkg}.{ChildTypeName}Service` |
 | `list_method` | `"List"` |
-| `get_service` | `{pkg}.{ParentTypeName}Service` |
+| `get_service` | `{pkg}.{TargetTypeName}Service` |
 | `get_method` | `"Get"` |
 
 Override any of these when a service does not follow the convention:
 
 ```protobuf
 message Comment {
-  string article_id = 1 [(protograph.v1alpha1.parent) = {
+  string article_id = 1 [(protograph.v1alpha1.edge) = {
     type:         "blog.v1.Article"
     list_service: "blog.v1.ContentService"
     list_method:  "ListComments"
@@ -71,7 +71,7 @@ If the filter field name in the `List` request differs from the FK field name on
 
 ```protobuf
 // FK field is "owner_id" but the ListRequest filter is "user_id"
-string owner_id = 3 [(protograph.v1alpha1.parent) = { type: "...", via: "user_id" }];
+string owner_id = 3 [(protograph.v1alpha1.edge) = { type: "...", via: "user_id" }];
 ```
 
 ## Query wire format
@@ -245,7 +245,7 @@ mux.Handle("/api/", restGateway)
 mux.Handle("/protograph/", pg)
 ```
 
-The blank import is required to register the `(protograph.v1alpha1.parent)` extension in the global proto registry.
+The blank import is required to register the `(protograph.v1alpha1.edge)` extension in the global proto registry. This happens via the generated `options.pb.go` init function which calls `proto.RegisterExtension(E_Edge)`.
 
 ## TypeScript client
 
@@ -321,4 +321,4 @@ The gateway buffers the full response before sending. Large result sets are held
 
 ### Pluralisation is naive
 
-The forward relation field name is derived as `strings.ToLower(ChildTypeName) + "s"` (e.g. `Task` → `tasks`). This breaks for irregular plurals (`Person` → `persons`, not `people`). **TODO**: either accept it as a known limitation of the convention or expose a `field_name` override in `ParentRef`.
+The forward relation field name is derived as `strings.ToLower(ChildTypeName) + "s"` (e.g. `Task` → `tasks`). This breaks for irregular plurals (`Person` → `persons`, not `people`). **TODO**: either accept it as a known limitation of the convention or expose a `field_name` override in `EdgeRef`.

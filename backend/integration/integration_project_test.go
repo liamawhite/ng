@@ -1,12 +1,72 @@
 package integration_test
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	api "github.com/liamawhite/ng/api/golang"
+	"github.com/liamawhite/ng/backend/pkg/server"
 	"github.com/liamawhite/ng/backend/pkg/store"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/test/bufconn"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
+
+// gwEnv wraps testEnv with a full grpc-gateway HTTP server, mirroring the real backend.
+type gwEnv struct {
+	*testEnv
+	url string
+}
+
+func newGWEnv(t *testing.T) *gwEnv {
+	t.Helper()
+	e := newEnv(t)
+
+	lis := bufconn.Listen(bufSize)
+	grpcSrv := grpc.NewServer(grpc.UnaryInterceptor(server.ValidationInterceptor))
+	api.RegisterAreaServiceServer(grpcSrv, e.areas)
+	api.RegisterProjectServiceServer(grpcSrv, e.projects)
+	api.RegisterTaskServiceServer(grpcSrv, e.tasks)
+	api.RegisterGraphServiceServer(grpcSrv, e.graph)
+	go grpcSrv.Serve(lis) //nolint:errcheck
+	t.Cleanup(grpcSrv.GracefulStop)
+
+	conn, err := grpc.NewClient(
+		"passthrough://bufnet",
+		grpc.WithContextDialer(func(ctx context.Context, _ string) (net.Conn, error) {
+			return lis.DialContext(ctx)
+		}),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		t.Fatalf("dial bufconn: %v", err)
+	}
+	t.Cleanup(func() { conn.Close() })
+
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	gwMux := runtime.NewServeMux()
+	if err := api.RegisterProjectServiceHandlerClient(ctx, gwMux, api.NewProjectServiceClient(conn)); err != nil {
+		t.Fatalf("register project gateway: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/api/", gwMux)
+	httpSrv := httptest.NewServer(mux)
+	t.Cleanup(httpSrv.Close)
+
+	return &gwEnv{testEnv: e, url: httpSrv.URL}
+}
 
 // ---- API-based invariant tests ----
 
@@ -42,9 +102,10 @@ func TestProjectCRUD_API(t *testing.T) {
 	}
 
 	_, err = e.projects.Update(bg, &api.UpdateProjectRequest{
-		Id:      proj.Id,
-		Title:   "Alpha Updated",
-		Content: "updated body",
+		Id:         proj.Id,
+		Title:      "Alpha Updated",
+		Content:    "updated body",
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"title", "content"}},
 	})
 	if err != nil {
 		t.Fatalf("Update: %v", err)
@@ -101,25 +162,17 @@ func TestProjectHierarchy_API(t *testing.T) {
 		t.Fatalf("Get child: ParentId=%q after Create", got.ParentId)
 	}
 
-	list, _ := e.projects.List(bg, &api.ListProjectsRequest{ParentId: parent.Id})
-	if len(list.Projects) != 1 || list.Projects[0].Id != child.Id {
+	childList, _ := e.projects.List(bg, &api.ListProjectsRequest{ParentId: parent.Id})
+	if len(childList.Projects) != 1 || childList.Projects[0].Id != child.Id {
 		t.Fatal("ListProjects by parentId: child not found")
-	}
-
-	related, _ := e.graph.ListRelated(bg, &api.ListRelatedRequest{
-		Id:        parent.Id,
-		Predicate: api.Predicate_PREDICATE_PART_OF,
-		Direction: api.Direction_DIRECTION_INCOMING,
-	})
-	if len(related.Entities) != 1 || related.Entities[0].Entity.GetProject().GetId() != child.Id {
-		t.Fatal("ListRelated: child not found as incoming for parent")
 	}
 
 	// Remove the parent relationship.
 	_, err = e.projects.Update(bg, &api.UpdateProjectRequest{
-		Id:    child.Id,
-		Title: "Child",
-		// ParentId omitted → relationship cleared
+		Id:         child.Id,
+		Title:      "Child",
+		ParentId:   "", // explicit empty value clears the relationship
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"title", "parent_id"}},
 	})
 	if err != nil {
 		t.Fatalf("Update to remove parent: %v", err)
@@ -128,13 +181,9 @@ func TestProjectHierarchy_API(t *testing.T) {
 	if got.ParentId != "" {
 		t.Fatalf("Get child after parent removal: ParentId=%q, want empty", got.ParentId)
 	}
-	related, _ = e.graph.ListRelated(bg, &api.ListRelatedRequest{
-		Id:        parent.Id,
-		Predicate: api.Predicate_PREDICATE_PART_OF,
-		Direction: api.Direction_DIRECTION_INCOMING,
-	})
-	if len(related.Entities) != 0 {
-		t.Fatal("ListRelated: child still in parent's edges after removal")
+	childList, _ = e.projects.List(bg, &api.ListProjectsRequest{ParentId: parent.Id})
+	if len(childList.Projects) != 0 {
+		t.Fatal("ListProjects: child still in parent's subprojects after removal")
 	}
 }
 
@@ -146,7 +195,7 @@ func TestProjectVisible_AfterFileCreate(t *testing.T) {
 	e := newEnv(t)
 
 	id := "00000000-0000-0000-0000-000000000001"
-	writeFile(t, e.dir, id, projectFileContent(id, "From File", "file body", ""))
+	writeFile(t, e.dir, id, projectFileContent(id, "From File", "file body", nil, nil))
 
 	waitFor(t, func() bool {
 		_, err := e.projects.Get(bg, &api.GetProjectRequest{Id: id})
@@ -172,7 +221,7 @@ func TestProject_FileModify_Watcher(t *testing.T) {
 		t.Fatalf("Create: %v", err)
 	}
 
-	writeFile(t, e.dir, proj.Id, projectFileContent(proj.Id, "Modified", "new body", ""))
+	writeFile(t, e.dir, proj.Id, projectFileContent(proj.Id, "Modified", "new body", nil, nil))
 
 	waitFor(t, func() bool {
 		got, err := e.projects.Get(bg, &api.GetProjectRequest{Id: proj.Id})
@@ -191,7 +240,7 @@ func TestProject_FileDelete_Watcher(t *testing.T) {
 	e := newEnv(t)
 
 	id := "00000000-0000-0000-0000-000000000007"
-	writeFile(t, e.dir, id, projectFileContent(id, "ToDelete", "", ""))
+	writeFile(t, e.dir, id, projectFileContent(id, "ToDelete", "", nil, nil))
 
 	waitFor(t, func() bool {
 		_, err := e.projects.Get(bg, &api.GetProjectRequest{Id: id})
@@ -217,7 +266,7 @@ func TestProject_FileCreate_APIDelete(t *testing.T) {
 	e := newEnv(t)
 
 	id := "00000000-0000-0000-0000-000000000004"
-	writeFile(t, e.dir, id, projectFileContent(id, "FileProj", "", ""))
+	writeFile(t, e.dir, id, projectFileContent(id, "FileProj", "", nil, nil))
 
 	waitFor(t, func() bool {
 		_, err := e.projects.Get(bg, &api.GetProjectRequest{Id: id})
@@ -238,7 +287,8 @@ func TestProject_FileCreate_APIDelete(t *testing.T) {
 }
 
 // TestProject_AddParent_FileModify verifies that adding a parent relationship
-// via file edit is reflected in both Get and the graph's incoming edges.
+// via file edit is reflected in both Get and List.
+// Under the parent-to-child model, the PARENT file stores the subproject edge.
 func TestProject_AddParent_FileModify(t *testing.T) {
 	e := newEnv(t)
 
@@ -253,7 +303,8 @@ func TestProject_AddParent_FileModify(t *testing.T) {
 		t.Fatalf("child.ParentId=%q before file edit, want empty", got.ParentId)
 	}
 
-	writeFile(t, e.dir, child.Id, projectFileContent(child.Id, "Child", "", parent.Id))
+	// In the new model, the parent file stores the subproject edge.
+	writeFile(t, e.dir, parent.Id, projectFileContent(parent.Id, "Parent", "", nil, []string{child.Id}))
 
 	waitFor(t, func() bool {
 		got, err := e.projects.Get(bg, &api.GetProjectRequest{Id: child.Id})
@@ -265,19 +316,15 @@ func TestProject_AddParent_FileModify(t *testing.T) {
 		t.Fatalf("child.ParentId=%q after file edit, want %q", got.ParentId, parent.Id)
 	}
 
-	related, _ := e.graph.ListRelated(bg, &api.ListRelatedRequest{
-		Id:        parent.Id,
-		Predicate: api.Predicate_PREDICATE_PART_OF,
-		Direction: api.Direction_DIRECTION_INCOMING,
-	})
+	list, _ := e.projects.List(bg, &api.ListProjectsRequest{ParentId: parent.Id})
 	found := false
-	for _, r := range related.Entities {
-		if r.Entity.GetProject().GetId() == child.Id {
+	for _, p := range list.Projects {
+		if p.Id == child.Id {
 			found = true
 		}
 	}
 	if !found {
-		t.Fatal("child not in parent's ListRelated after file edit")
+		t.Fatal("child not in parent's ListProjects after file edit")
 	}
 }
 
@@ -332,10 +379,11 @@ func TestProjectStatusAndArea(t *testing.T) {
 
 	// Update to different values.
 	_, err = e.projects.Update(bg, &api.UpdateProjectRequest{
-		Id:     proj.Id,
-		Title:  "Status Project",
-		Status: api.ProjectStatus_PROJECT_STATUS_COMPLETED,
-		AreaId: personalArea.Id,
+		Id:         proj.Id,
+		Title:      "Status Project",
+		Status:     api.ProjectStatus_PROJECT_STATUS_COMPLETED,
+		AreaId:     personalArea.Id,
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"status", "area_id"}},
 	})
 	if err != nil {
 		t.Fatalf("Update: %v", err)
@@ -379,5 +427,188 @@ func TestListProjectsFilters(t *testing.T) {
 	both, _ := e.projects.List(bg, &api.ListProjectsRequest{Status: api.ProjectStatus_PROJECT_STATUS_ACTIVE, AreaId: workArea.Id})
 	if len(both.Projects) != 1 || both.Projects[0].Title != "A" {
 		t.Fatalf("filter by ACTIVE+work: got %d projects", len(both.Projects))
+	}
+}
+
+// TestProjectEffort_API verifies that estimated_effort is persisted through
+// Create, Update (set and clear), and reflected on disk.
+func TestProjectEffort_API(t *testing.T) {
+	e := newEnv(t)
+
+	proj, err := e.projects.Create(bg, &api.CreateProjectRequest{
+		Title: "Effort Project",
+		EstimatedEffort: &api.Effort{
+			Value: 2,
+			Unit:  api.EffortUnit_EFFORT_UNIT_WEEKS,
+		},
+	})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if proj.EstimatedEffort == nil {
+		t.Fatal("Create response: EstimatedEffort is nil")
+	}
+	if proj.EstimatedEffort.Value != 2 || proj.EstimatedEffort.Unit != api.EffortUnit_EFFORT_UNIT_WEEKS {
+		t.Fatalf("Create response: effort=%v/%v, want 2/WEEKS", proj.EstimatedEffort.Value, proj.EstimatedEffort.Unit)
+	}
+
+	// Verify on disk.
+	node, _, err := store.ParseFile(filepath.Join(e.dir, proj.Id+".md"))
+	if err != nil {
+		t.Fatalf("ParseFile after Create: %v", err)
+	}
+	if node.EffortValue != 2 || node.EffortUnit != "weeks" {
+		t.Fatalf("file after Create: effort_value=%d effort_unit=%q", node.EffortValue, node.EffortUnit)
+	}
+
+	// Update to 1 month.
+	updated, err := e.projects.Update(bg, &api.UpdateProjectRequest{
+		Id:    proj.Id,
+		Title: proj.Title,
+		EstimatedEffort: &api.Effort{
+			Value: 1,
+			Unit:  api.EffortUnit_EFFORT_UNIT_MONTHS,
+		},
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"estimated_effort"}},
+	})
+	if err != nil {
+		t.Fatalf("Update to 1 month: %v", err)
+	}
+	if updated.EstimatedEffort == nil || updated.EstimatedEffort.Value != 1 || updated.EstimatedEffort.Unit != api.EffortUnit_EFFORT_UNIT_MONTHS {
+		t.Fatalf("Update response: effort=%v", updated.EstimatedEffort)
+	}
+	node, _, _ = store.ParseFile(filepath.Join(e.dir, proj.Id+".md"))
+	if node.EffortValue != 1 || node.EffortUnit != "months" {
+		t.Fatalf("file after Update: effort_value=%d effort_unit=%q", node.EffortValue, node.EffortUnit)
+	}
+
+	// Clear effort by sending nil.
+	cleared, err := e.projects.Update(bg, &api.UpdateProjectRequest{
+		Id:              proj.Id,
+		Title:           proj.Title,
+		EstimatedEffort: nil,
+		UpdateMask:      &fieldmaskpb.FieldMask{Paths: []string{"estimated_effort"}},
+	})
+	if err != nil {
+		t.Fatalf("Update to clear: %v", err)
+	}
+	if cleared.EstimatedEffort != nil {
+		t.Fatalf("Update clear response: EstimatedEffort=%v, want nil", cleared.EstimatedEffort)
+	}
+	node, _, _ = store.ParseFile(filepath.Join(e.dir, proj.Id+".md"))
+	if node.EffortValue != 0 || node.EffortUnit != "" {
+		t.Fatalf("file after clear: effort_value=%d effort_unit=%q", node.EffortValue, node.EffortUnit)
+	}
+}
+
+// TestProjectPriority_API verifies that priority is persisted through Create,
+// Update (via field_mask), and defaults to 4 when unspecified.
+func TestProjectPriority_API(t *testing.T) {
+	e := newEnv(t)
+
+	// Create with explicit priority 2.
+	proj, err := e.projects.Create(bg, &api.CreateProjectRequest{
+		Title:    "Priority Project",
+		Priority: api.Priority_PRIORITY_2,
+	})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if proj.Priority != api.Priority_PRIORITY_2 {
+		t.Fatalf("Create response: priority=%v, want PROJECT_PRIORITY_2", proj.Priority)
+	}
+
+	// Verify on disk.
+	node, _, err := store.ParseFile(filepath.Join(e.dir, proj.Id+".md"))
+	if err != nil {
+		t.Fatalf("ParseFile after Create: %v", err)
+	}
+	if node.Priority != 2 {
+		t.Fatalf("file after Create: priority=%d, want 2", node.Priority)
+	}
+
+	// Update to priority 5.
+	updated, err := e.projects.Update(bg, &api.UpdateProjectRequest{
+		Id:         proj.Id,
+		Title:      proj.Title,
+		Priority:   api.Priority_PRIORITY_5,
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"priority"}},
+	})
+	if err != nil {
+		t.Fatalf("Update priority: %v", err)
+	}
+	if updated.Priority != api.Priority_PRIORITY_5 {
+		t.Fatalf("Update response: priority=%v, want PROJECT_PRIORITY_5", updated.Priority)
+	}
+	node, _, _ = store.ParseFile(filepath.Join(e.dir, proj.Id+".md"))
+	if node.Priority != 5 {
+		t.Fatalf("file after Update: priority=%d, want 5", node.Priority)
+	}
+
+	// Create with unspecified priority — should default to 4.
+	defaultProj, err := e.projects.Create(bg, &api.CreateProjectRequest{
+		Title: "Default Priority Project",
+	})
+	if err != nil {
+		t.Fatalf("Create default: %v", err)
+	}
+	if defaultProj.Priority != api.Priority_PRIORITY_4 {
+		t.Fatalf("Create default response: priority=%v, want PROJECT_PRIORITY_4", defaultProj.Priority)
+	}
+	node, _, _ = store.ParseFile(filepath.Join(e.dir, defaultProj.Id+".md"))
+	if node.Priority != 4 {
+		t.Fatalf("file after Create default: priority=%d, want 4", node.Priority)
+	}
+}
+
+// TestProjectPriority_HTTP verifies that a priority-only update sent as JSON
+// (mimicking the frontend keyboard shortcut) correctly persists through the
+// grpc-gateway HTTP → gRPC path.
+func TestProjectPriority_HTTP(t *testing.T) {
+	e := newGWEnv(t)
+
+	proj, err := e.projects.Create(bg, &api.CreateProjectRequest{Title: "HTTP Priority"})
+	if err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+
+	// Mimic what the frontend keyboard shortcut sends.
+	body := `{"priority":"PRIORITY_2","updateMask":"priority"}`
+	req, _ := http.NewRequest(http.MethodPut, fmt.Sprintf("%s/api/v1/projects/%s", e.url, proj.Id), strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("PUT: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("PUT status=%d, want 200", resp.StatusCode)
+	}
+
+	// Decode response and check priority.
+	var result map[string]any
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if got := result["priority"]; got != "PRIORITY_2" {
+		t.Fatalf("response priority=%v, want PROJECT_PRIORITY_2", got)
+	}
+
+	// Verify persisted on disk.
+	node, _, err := store.ParseFile(filepath.Join(e.dir, proj.Id+".md"))
+	if err != nil {
+		t.Fatalf("ParseFile: %v", err)
+	}
+	if node.Priority != 2 {
+		t.Fatalf("file priority=%d, want 2", node.Priority)
+	}
+
+	// Verify via a fresh GET.
+	fetched, err := e.projects.Get(bg, &api.GetProjectRequest{Id: proj.Id})
+	if err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+	if fetched.Priority != api.Priority_PRIORITY_2 {
+		t.Fatalf("Get priority=%v, want PROJECT_PRIORITY_2", fetched.Priority)
 	}
 }

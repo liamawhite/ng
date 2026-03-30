@@ -3,6 +3,23 @@
 export interface Area {
   id: string
   title: string
+  color?: string
+}
+
+export type EffortUnit =
+  | 'EFFORT_UNIT_UNSPECIFIED'
+  | 'EFFORT_UNIT_DAYS'
+  | 'EFFORT_UNIT_WEEKS'
+  | 'EFFORT_UNIT_MONTHS'
+
+export interface Effort {
+  value: number
+  unit: EffortUnit
+}
+
+export interface Link {
+  url: string
+  title?: string
 }
 
 export interface Project {
@@ -12,6 +29,10 @@ export interface Project {
   parentId?: string
   status?: ProjectStatus
   areaId?: string
+  completed?: string // RFC3339 timestamp
+  estimatedEffort?: Effort
+  links?: Link[]
+  priority?: Priority
 }
 
 export interface Task {
@@ -19,7 +40,10 @@ export interface Task {
   title: string
   content?: string
   projectId?: string
+  parentTaskId?: string
   status: TaskStatus
+  pinned?: boolean
+  priority?: Priority
 }
 
 export type ProjectStatus =
@@ -30,13 +54,21 @@ export type ProjectStatus =
   | 'PROJECT_STATUS_COMPLETED'
   | 'PROJECT_STATUS_ABANDONED'
 
+export type Priority =
+  | 'PRIORITY_UNSPECIFIED'
+  | 'PRIORITY_1'
+  | 'PRIORITY_2'
+  | 'PRIORITY_3'
+  | 'PRIORITY_4'
+  | 'PRIORITY_5'
+
 export type TaskStatus =
   | 'TASK_STATUS_UNSPECIFIED'
   | 'TASK_STATUS_TODO'
   | 'TASK_STATUS_IN_PROGRESS'
   | 'TASK_STATUS_DONE'
 
-export type Predicate = 'PREDICATE_UNSPECIFIED' | 'PREDICATE_PART_OF' | 'PREDICATE_IN_AREA'
+export type Predicate = 'PREDICATE_UNSPECIFIED' | 'PREDICATE_PART_OF' | 'PREDICATE_IN_AREA' | 'PREDICATE_TASK' | 'PREDICATE_SUBTASK' | 'PREDICATE_SUBPROJECT'
 export type Direction = 'DIRECTION_UNSPECIFIED' | 'DIRECTION_OUTGOING' | 'DIRECTION_INCOMING'
 
 export interface RelatedEntity {
@@ -75,14 +107,14 @@ export const areas = {
   create: (data: { title: string }) => request<Area>('POST', '/api/v1/areas', data),
   get: (id: string) => request<Area>('GET', `/api/v1/areas/${id}`),
   list: () => request<{ areas: Area[] }>('GET', '/api/v1/areas'),
-  update: (id: string, data: { title: string }) => request<Area>('PUT', `/api/v1/areas/${id}`, data),
+  update: (id: string, data: { title?: string; color?: string; updateMask: string }) => request<Area>('PUT', `/api/v1/areas/${id}`, data),
   delete: (id: string) => request<void>('DELETE', `/api/v1/areas/${id}`),
 }
 
 // --- Projects ---
 
 export const projects = {
-  create: (data: { title: string; content?: string; parentId?: string; status?: ProjectStatus; areaId?: string }) =>
+  create: (data: { title: string; content?: string; parentId?: string; status?: ProjectStatus; areaId?: string; estimatedEffort?: Effort; links?: Link[] }) =>
     request<Project>('POST', '/api/v1/projects', data),
 
   get: (id: string) => request<Project>('GET', `/api/v1/projects/${id}`),
@@ -96,7 +128,7 @@ export const projects = {
     return request<{ projects: Project[] }>('GET', `/api/v1/projects${qs}`)
   },
 
-  update: (id: string, data: { title: string; content?: string; parentId?: string; status?: ProjectStatus; areaId?: string }) =>
+  update: (id: string, data: { title?: string; content?: string; parentId?: string; status?: ProjectStatus; areaId?: string; estimatedEffort?: Effort | null; links?: Link[]; priority?: Priority; updateMask: string }) =>
     request<Project>('PUT', `/api/v1/projects/${id}`, data),
 
   delete: (id: string) => request<void>('DELETE', `/api/v1/projects/${id}`),
@@ -109,17 +141,22 @@ export const tasks = {
     title: string
     content?: string
     projectId?: string
+    parentTaskId?: string
     status?: TaskStatus
+    pinned?: boolean
   }) => request<Task>('POST', '/api/v1/tasks', data),
 
   get: (id: string) => request<Task>('GET', `/api/v1/tasks/${id}`),
 
-  list: (projectId?: string) => {
-    const qs = projectId ? `?project_id=${encodeURIComponent(projectId)}` : ''
+  list: (filters?: { projectId?: string; pinned?: boolean }) => {
+    const params = new URLSearchParams()
+    if (filters?.projectId) params.set('project_id', filters.projectId)
+    if (filters?.pinned !== undefined) params.set('pinned', String(filters.pinned))
+    const qs = params.size ? `?${params}` : ''
     return request<{ tasks: Task[] }>('GET', `/api/v1/tasks${qs}`)
   },
 
-  update: (id: string, data: { title: string; content?: string; projectId?: string; status?: TaskStatus }) =>
+  update: (id: string, data: { title?: string; content?: string; projectId?: string; parentTaskId?: string; status?: TaskStatus; pinned?: boolean; priority?: Priority; updateMask: string }) =>
     request<Task>('PUT', `/api/v1/tasks/${id}`, data),
 
   delete: (id: string) => request<void>('DELETE', `/api/v1/tasks/${id}`),

@@ -12,28 +12,28 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file protograph/v1alpha1/options.proto.
  */
 export const file_protograph_v1alpha1_options: GenFile = /*@__PURE__*/
-  fileDesc("CiFwcm90b2dyYXBoL3YxYWxwaGExL29wdGlvbnMucHJvdG8SE3Byb3RvZ3JhcGgudjFhbHBoYTEiegoJUGFyZW50UmVmEgwKBHR5cGUYASABKAkSCwoDdmlhGAIgASgJEhQKDGxpc3Rfc2VydmljZRgDIAEoCRITCgtsaXN0X21ldGhvZBgEIAEoCRITCgtnZXRfc2VydmljZRgFIAEoCRISCgpnZXRfbWV0aG9kGAYgASgJOlcKBnBhcmVudBIdLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE9wdGlvbnMY0IYDIAEoCzIeLnByb3RvZ3JhcGgudjFhbHBoYTEuUGFyZW50UmVmUgZwYXJlbnRCTFpKZ2l0aHViLmNvbS9saWFtYXdoaXRlL25nL2FwaS9nb2xhbmcvcHJvdG9ncmFwaC92MWFscGhhMTtwcm90b2dyYXBodjFhbHBoYTFiBnByb3RvMw", [file_google_protobuf_descriptor]);
+  fileDesc("CiFwcm90b2dyYXBoL3YxYWxwaGExL29wdGlvbnMucHJvdG8SE3Byb3RvZ3JhcGgudjFhbHBoYTEieAoHRWRnZVJlZhIMCgR0eXBlGAEgASgJEgsKA3ZpYRgCIAEoCRIUCgxsaXN0X3NlcnZpY2UYAyABKAkSEwoLbGlzdF9tZXRob2QYBCABKAkSEwoLZ2V0X3NlcnZpY2UYBSABKAkSEgoKZ2V0X21ldGhvZBgGIAEoCTpRCgRlZGdlEh0uZ29vZ2xlLnByb3RvYnVmLkZpZWxkT3B0aW9ucxjQhgMgASgLMhwucHJvdG9ncmFwaC52MWFscGhhMS5FZGdlUmVmUgRlZGdlQkxaSmdpdGh1Yi5jb20vbGlhbWF3aGl0ZS9uZy9hcGkvZ29sYW5nL3Byb3RvZ3JhcGgvdjFhbHBoYTE7cHJvdG9ncmFwaHYxYWxwaGExYgZwcm90bzM", [file_google_protobuf_descriptor]);
 
 /**
- * ParentRef declares that a field is a foreign-key reference to another proto
+ * EdgeRef declares that a field is a foreign-key reference to another proto
  * message type. The protograph gateway uses this to automatically fan-out and
- * stitch child entities onto parent responses.
+ * stitch related entities onto responses.
  *
  * Fields 3-6 are optional overrides for when the default naming conventions
  * ({TypeName}Service, "List", "Get") do not apply.
  *
- * @generated from message protograph.v1alpha1.ParentRef
+ * @generated from message protograph.v1alpha1.EdgeRef
  */
-export type ParentRef = Message<"protograph.v1alpha1.ParentRef"> & {
+export type EdgeRef = Message<"protograph.v1alpha1.EdgeRef"> & {
   /**
-   * Fully-qualified parent message type, e.g. "ng.v1.Area". Required.
+   * Fully-qualified target message type, e.g. "ng.v1.Area". Required.
    *
    * @generated from field: string type = 1;
    */
   type: string;
 
   /**
-   * Filter field name in the child's List request, e.g. "area_id".
+   * Filter field name in the target's List request, e.g. "area_id".
    * Defaults to the annotated field's own name when omitted.
    *
    * @generated from field: string via = 2;
@@ -41,7 +41,7 @@ export type ParentRef = Message<"protograph.v1alpha1.ParentRef"> & {
   via: string;
 
   /**
-   * Service to call when listing children.
+   * Service to call when listing related entities.
    * Defaults to {pkg}.{ChildTypeName}Service when omitted.
    *
    * @generated from field: string list_service = 3;
@@ -49,7 +49,7 @@ export type ParentRef = Message<"protograph.v1alpha1.ParentRef"> & {
   listService: string;
 
   /**
-   * Method to call when listing children.
+   * Method to call when listing related entities.
    * Defaults to "List" when omitted.
    *
    * @generated from field: string list_method = 4;
@@ -57,15 +57,15 @@ export type ParentRef = Message<"protograph.v1alpha1.ParentRef"> & {
   listMethod: string;
 
   /**
-   * Service to call when fetching the parent.
-   * Defaults to {pkg}.{ParentTypeName}Service when omitted.
+   * Service to call when fetching the target.
+   * Defaults to {pkg}.{TargetTypeName}Service when omitted.
    *
    * @generated from field: string get_service = 5;
    */
   getService: string;
 
   /**
-   * Method to call when fetching the parent.
+   * Method to call when fetching the target.
    * Defaults to "Get" when omitted.
    *
    * @generated from field: string get_method = 6;
@@ -74,15 +74,15 @@ export type ParentRef = Message<"protograph.v1alpha1.ParentRef"> & {
 };
 
 /**
- * Describes the message protograph.v1alpha1.ParentRef.
- * Use `create(ParentRefSchema)` to create a new message.
+ * Describes the message protograph.v1alpha1.EdgeRef.
+ * Use `create(EdgeRefSchema)` to create a new message.
  */
-export const ParentRefSchema: GenMessage<ParentRef> = /*@__PURE__*/
+export const EdgeRefSchema: GenMessage<EdgeRef> = /*@__PURE__*/
   messageDesc(file_protograph_v1alpha1_options, 0);
 
 /**
- * @generated from extension: protograph.v1alpha1.ParentRef parent = 50000;
+ * @generated from extension: protograph.v1alpha1.EdgeRef edge = 50000;
  */
-export const parent: GenExtension<FieldOptions, ParentRef> = /*@__PURE__*/
+export const edge: GenExtension<FieldOptions, EdgeRef> = /*@__PURE__*/
   extDesc(file_protograph_v1alpha1_options, 0);
 

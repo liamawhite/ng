@@ -12,6 +12,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	emptypb "google.golang.org/protobuf/types/known/emptypb"
+	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -28,6 +29,7 @@ type Area struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Color         string                 `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -76,9 +78,17 @@ func (x *Area) GetTitle() string {
 	return ""
 }
 
+func (x *Area) GetColor() string {
+	if x != nil {
+		return x.Color
+	}
+	return ""
+}
+
 type CreateAreaRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Title         string                 `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Color         string                 `protobuf:"bytes,2,opt,name=color,proto3" json:"color,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -116,6 +126,13 @@ func (*CreateAreaRequest) Descriptor() ([]byte, []int) {
 func (x *CreateAreaRequest) GetTitle() string {
 	if x != nil {
 		return x.Title
+	}
+	return ""
+}
+
+func (x *CreateAreaRequest) GetColor() string {
+	if x != nil {
+		return x.Color
 	}
 	return ""
 }
@@ -248,6 +265,8 @@ type UpdateAreaRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Title         string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Color         string                 `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
+	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,4,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -294,6 +313,20 @@ func (x *UpdateAreaRequest) GetTitle() string {
 		return x.Title
 	}
 	return ""
+}
+
+func (x *UpdateAreaRequest) GetColor() string {
+	if x != nil {
+		return x.Color
+	}
+	return ""
+}
+
+func (x *UpdateAreaRequest) GetUpdateMask() *fieldmaskpb.FieldMask {
+	if x != nil {
+		return x.UpdateMask
+	}
+	return nil
 }
 
 type DeleteAreaRequest struct {
@@ -344,20 +377,25 @@ var File_areas_proto protoreflect.FileDescriptor
 
 const file_areas_proto_rawDesc = "" +
 	"\n" +
-	"\vareas.proto\x12\x05ng.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1bbuf/validate/validate.proto\",\n" +
+	"\vareas.proto\x12\x05ng.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a google/protobuf/field_mask.proto\x1a\x1bbuf/validate/validate.proto\"B\n" +
 	"\x04Area\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05title\x18\x02 \x01(\tR\x05title\"2\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x14\n" +
+	"\x05color\x18\x03 \x01(\tR\x05color\"H\n" +
 	"\x11CreateAreaRequest\x12\x1d\n" +
-	"\x05title\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05title\")\n" +
+	"\x05title\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05title\x12\x14\n" +
+	"\x05color\x18\x02 \x01(\tR\x05color\")\n" +
 	"\x0eGetAreaRequest\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\"\x12\n" +
 	"\x10ListAreasRequest\"6\n" +
 	"\x11ListAreasResponse\x12!\n" +
-	"\x05areas\x18\x01 \x03(\v2\v.ng.v1.AreaR\x05areas\"K\n" +
+	"\x05areas\x18\x01 \x03(\v2\v.ng.v1.AreaR\x05areas\"\x9d\x01\n" +
 	"\x11UpdateAreaRequest\x12\x17\n" +
-	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\x12\x1d\n" +
-	"\x05title\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x05title\",\n" +
+	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x14\n" +
+	"\x05color\x18\x03 \x01(\tR\x05color\x12C\n" +
+	"\vupdate_mask\x18\x04 \x01(\v2\x1a.google.protobuf.FieldMaskB\x06\xbaH\x03\xc8\x01\x01R\n" +
+	"updateMask\",\n" +
 	"\x11DeleteAreaRequest\x12\x17\n" +
 	"\x02id\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\x02id2\x99\x03\n" +
 	"\vAreaService\x12I\n" +
@@ -381,32 +419,34 @@ func file_areas_proto_rawDescGZIP() []byte {
 
 var file_areas_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_areas_proto_goTypes = []any{
-	(*Area)(nil),              // 0: ng.v1.Area
-	(*CreateAreaRequest)(nil), // 1: ng.v1.CreateAreaRequest
-	(*GetAreaRequest)(nil),    // 2: ng.v1.GetAreaRequest
-	(*ListAreasRequest)(nil),  // 3: ng.v1.ListAreasRequest
-	(*ListAreasResponse)(nil), // 4: ng.v1.ListAreasResponse
-	(*UpdateAreaRequest)(nil), // 5: ng.v1.UpdateAreaRequest
-	(*DeleteAreaRequest)(nil), // 6: ng.v1.DeleteAreaRequest
-	(*emptypb.Empty)(nil),     // 7: google.protobuf.Empty
+	(*Area)(nil),                  // 0: ng.v1.Area
+	(*CreateAreaRequest)(nil),     // 1: ng.v1.CreateAreaRequest
+	(*GetAreaRequest)(nil),        // 2: ng.v1.GetAreaRequest
+	(*ListAreasRequest)(nil),      // 3: ng.v1.ListAreasRequest
+	(*ListAreasResponse)(nil),     // 4: ng.v1.ListAreasResponse
+	(*UpdateAreaRequest)(nil),     // 5: ng.v1.UpdateAreaRequest
+	(*DeleteAreaRequest)(nil),     // 6: ng.v1.DeleteAreaRequest
+	(*fieldmaskpb.FieldMask)(nil), // 7: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),         // 8: google.protobuf.Empty
 }
 var file_areas_proto_depIdxs = []int32{
 	0, // 0: ng.v1.ListAreasResponse.areas:type_name -> ng.v1.Area
-	1, // 1: ng.v1.AreaService.Create:input_type -> ng.v1.CreateAreaRequest
-	2, // 2: ng.v1.AreaService.Get:input_type -> ng.v1.GetAreaRequest
-	3, // 3: ng.v1.AreaService.List:input_type -> ng.v1.ListAreasRequest
-	5, // 4: ng.v1.AreaService.Update:input_type -> ng.v1.UpdateAreaRequest
-	6, // 5: ng.v1.AreaService.Delete:input_type -> ng.v1.DeleteAreaRequest
-	0, // 6: ng.v1.AreaService.Create:output_type -> ng.v1.Area
-	0, // 7: ng.v1.AreaService.Get:output_type -> ng.v1.Area
-	4, // 8: ng.v1.AreaService.List:output_type -> ng.v1.ListAreasResponse
-	0, // 9: ng.v1.AreaService.Update:output_type -> ng.v1.Area
-	7, // 10: ng.v1.AreaService.Delete:output_type -> google.protobuf.Empty
-	6, // [6:11] is the sub-list for method output_type
-	1, // [1:6] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	7, // 1: ng.v1.UpdateAreaRequest.update_mask:type_name -> google.protobuf.FieldMask
+	1, // 2: ng.v1.AreaService.Create:input_type -> ng.v1.CreateAreaRequest
+	2, // 3: ng.v1.AreaService.Get:input_type -> ng.v1.GetAreaRequest
+	3, // 4: ng.v1.AreaService.List:input_type -> ng.v1.ListAreasRequest
+	5, // 5: ng.v1.AreaService.Update:input_type -> ng.v1.UpdateAreaRequest
+	6, // 6: ng.v1.AreaService.Delete:input_type -> ng.v1.DeleteAreaRequest
+	0, // 7: ng.v1.AreaService.Create:output_type -> ng.v1.Area
+	0, // 8: ng.v1.AreaService.Get:output_type -> ng.v1.Area
+	4, // 9: ng.v1.AreaService.List:output_type -> ng.v1.ListAreasResponse
+	0, // 10: ng.v1.AreaService.Update:output_type -> ng.v1.Area
+	8, // 11: ng.v1.AreaService.Delete:output_type -> google.protobuf.Empty
+	7, // [7:12] is the sub-list for method output_type
+	2, // [2:7] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_areas_proto_init() }

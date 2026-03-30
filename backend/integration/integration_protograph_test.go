@@ -30,6 +30,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 // ---- Protograph test infrastructure ----
@@ -978,5 +979,276 @@ func TestProtograph_RelationFieldNotSelected(t *testing.T) {
 	areaItem := asMap(t, areas[0])
 	if _, ok := areaItem["projects"]; ok {
 		t.Error("area.projects should not appear when not selected")
+	}
+}
+
+// ---- Nested task (subtask) tests ----
+
+// TestProtograph_NestedTasks verifies that querying TaskService.List with a
+// nested "tasks" selection fans out TaskService.List(parent_task_id=X) for
+// each task, stitching subtasks onto their parent task.
+//
+// Layout:  root ← sub ← subsub
+//
+// The top-level "tasks" list contains ALL tasks (root + sub + subsub), because
+// TaskService.List(project_id) returns everything. Each task's "tasks" field
+// contains only its DIRECT children, built by the fan-out.
+func TestProtograph_NestedTasks(t *testing.T) {
+	e := newPGEnv(t)
+
+	proj, err := e.projects.Create(bg, &api.CreateProjectRequest{Title: "Proj"})
+	if err != nil {
+		t.Fatalf("Create project: %v", err)
+	}
+	root, err := e.tasks.Create(bg, &api.CreateTaskRequest{
+		Title:     "Root",
+		ProjectId: proj.Id,
+		Status:    api.TaskStatus_TASK_STATUS_TODO,
+	})
+	if err != nil {
+		t.Fatalf("Create root: %v", err)
+	}
+	sub, err := e.tasks.Create(bg, &api.CreateTaskRequest{
+		Title:        "Sub",
+		ProjectId:    proj.Id,
+		ParentTaskId: root.Id,
+		Status:       api.TaskStatus_TASK_STATUS_TODO,
+	})
+	if err != nil {
+		t.Fatalf("Create sub: %v", err)
+	}
+	subsub, err := e.tasks.Create(bg, &api.CreateTaskRequest{
+		Title:        "SubSub",
+		ProjectId:    proj.Id,
+		ParentTaskId: sub.Id,
+		Status:       api.TaskStatus_TASK_STATUS_TODO,
+	})
+	if err != nil {
+		t.Fatalf("Create subsub: %v", err)
+	}
+
+	body := fmt.Sprintf(`{
+		"ng.v1.TaskService": {
+			"list": {
+				"$": {"projectId": %q},
+				"tasks": {
+					"id": {},
+					"parentTaskId": {},
+					"tasks": {
+						"id": {},
+						"parentTaskId": {},
+						"tasks": {"id": {}}
+					}
+				}
+			}
+		}
+	}`, proj.Id)
+
+	code, result := pgPost(t, e.url, body)
+	if code != http.StatusOK {
+		t.Fatalf("status: got %d, want 200", code)
+	}
+
+	allTasks := getSlice(t, result, "ng.v1.TaskService", "list", "tasks")
+
+	// All three tasks appear at the top level (List(project_id) returns everything).
+	if len(allTasks) != 3 {
+		t.Fatalf("top-level tasks: got %d, want 3 (root+sub+subsub)", len(allTasks))
+	}
+
+	// Build id → task map for easy lookup.
+	byID := make(map[string]map[string]any)
+	for _, item := range allTasks {
+		m := asMap(t, item)
+		id, _ := m["id"].(string)
+		byID[id] = m
+	}
+
+	// root.tasks must contain exactly sub.
+	rootMap, ok := byID[root.Id]
+	if !ok {
+		t.Fatalf("root task %q missing from top-level list", root.Id)
+	}
+	rootChildren, ok := rootMap["tasks"].([]any)
+	if !ok || len(rootChildren) != 1 {
+		t.Fatalf("root.tasks: want 1 child, got %v", rootMap["tasks"])
+	}
+	subItem := asMap(t, rootChildren[0])
+	if subItem["id"] != sub.Id {
+		t.Errorf("root.tasks[0].id: got %v, want %q", subItem["id"], sub.Id)
+	}
+
+	// sub.tasks (inside root.tasks) must contain exactly subsub.
+	subChildren, ok := subItem["tasks"].([]any)
+	if !ok || len(subChildren) != 1 {
+		t.Fatalf("sub.tasks: want 1 child, got %v", subItem["tasks"])
+	}
+	subsubItem := asMap(t, subChildren[0])
+	if subsubItem["id"] != subsub.Id {
+		t.Errorf("sub.tasks[0].id: got %v, want %q", subsubItem["id"], subsub.Id)
+	}
+}
+
+// TestProtograph_NestedTasks_ListByParentTaskId verifies that passing
+// parentTaskId in the "$" params filters the top-level result to only
+// direct children of that task.
+func TestProtograph_NestedTasks_ListByParentTaskId(t *testing.T) {
+	e := newPGEnv(t)
+
+	proj, _ := e.projects.Create(bg, &api.CreateProjectRequest{Title: "Proj"})
+	root, _ := e.tasks.Create(bg, &api.CreateTaskRequest{
+		Title:     "Root",
+		ProjectId: proj.Id,
+		Status:    api.TaskStatus_TASK_STATUS_TODO,
+	})
+	sub1, _ := e.tasks.Create(bg, &api.CreateTaskRequest{
+		Title:        "Sub1",
+		ProjectId:    proj.Id,
+		ParentTaskId: root.Id,
+		Status:       api.TaskStatus_TASK_STATUS_TODO,
+	})
+	sub2, _ := e.tasks.Create(bg, &api.CreateTaskRequest{
+		Title:        "Sub2",
+		ProjectId:    proj.Id,
+		ParentTaskId: root.Id,
+		Status:       api.TaskStatus_TASK_STATUS_TODO,
+	})
+
+	body := fmt.Sprintf(`{
+		"ng.v1.TaskService": {
+			"list": {
+				"$": {"parentTaskId": %q},
+				"tasks": {"id": {}}
+			}
+		}
+	}`, root.Id)
+
+	code, result := pgPost(t, e.url, body)
+	if code != http.StatusOK {
+		t.Fatalf("status: got %d, want 200", code)
+	}
+
+	tasks := getSlice(t, result, "ng.v1.TaskService", "list", "tasks")
+	if len(tasks) != 2 {
+		t.Fatalf("expected 2 children of root, got %d", len(tasks))
+	}
+
+	ids := map[string]bool{}
+	for _, item := range tasks {
+		m := asMap(t, item)
+		id, _ := m["id"].(string)
+		ids[id] = true
+	}
+	if !ids[sub1.Id] || !ids[sub2.Id] {
+		t.Errorf("expected sub1 and sub2, got: %v", ids)
+	}
+}
+
+// TestProtograph_NestedTasks_NoSubtasks verifies that a task with no subtasks
+// gets an empty tasks array (not nil or absent) when tasks are selected.
+func TestProtograph_NestedTasks_NoSubtasks(t *testing.T) {
+	e := newPGEnv(t)
+
+	proj, _ := e.projects.Create(bg, &api.CreateProjectRequest{Title: "Proj"})
+	task, _ := e.tasks.Create(bg, &api.CreateTaskRequest{
+		Title:     "Leaf",
+		ProjectId: proj.Id,
+		Status:    api.TaskStatus_TASK_STATUS_TODO,
+	})
+
+	body := fmt.Sprintf(`{
+		"ng.v1.TaskService": {
+			"list": {
+				"$": {"projectId": %q},
+				"tasks": {
+					"id": {},
+					"tasks": {"id": {}}
+				}
+			}
+		}
+	}`, proj.Id)
+
+	code, result := pgPost(t, e.url, body)
+	if code != http.StatusOK {
+		t.Fatalf("status: got %d, want 200", code)
+	}
+
+	tasks := getSlice(t, result, "ng.v1.TaskService", "list", "tasks")
+	if len(tasks) != 1 {
+		t.Fatalf("expected 1 task, got %d", len(tasks))
+	}
+	taskItem := asMap(t, tasks[0])
+	if taskItem["id"] != task.Id {
+		t.Errorf("task id: got %v, want %q", taskItem["id"], task.Id)
+	}
+
+	children, ok := taskItem["tasks"].([]any)
+	if !ok {
+		t.Fatalf("task.tasks: not a []any (got %T)", taskItem["tasks"])
+	}
+	if len(children) != 0 {
+		t.Errorf("task.tasks: expected 0 children, got %d", len(children))
+	}
+}
+
+// TestProtograph_ProjectPriority verifies that the priority field is included in
+// the protograph response after a priority-only update (the same path the
+// frontend keyboard shortcut uses).
+func TestProtograph_ProjectPriority(t *testing.T) {
+	e := newPGEnv(t)
+
+	area, err := e.areas.Create(bg, &api.CreateAreaRequest{Title: "Area"})
+	if err != nil {
+		t.Fatalf("Create area: %v", err)
+	}
+	proj, err := e.projects.Create(bg, &api.CreateProjectRequest{
+		Title:  "My Project",
+		AreaId: area.Id,
+	})
+	if err != nil {
+		t.Fatalf("Create project: %v", err)
+	}
+
+	// Update to P2 via gRPC (matches what the HTTP keyboard shortcut persists).
+	_, err = e.projects.Update(bg, &api.UpdateProjectRequest{
+		Id:         proj.Id,
+		Priority:   api.Priority_PRIORITY_2,
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"priority"}},
+	})
+	if err != nil {
+		t.Fatalf("Update priority: %v", err)
+	}
+
+	const query = `{
+		"ng.v1.AreaService": {
+			"list": {
+				"$": {},
+				"areas": {
+					"id": {},
+					"projects": {
+						"id": {},
+						"priority": {}
+					}
+				}
+			}
+		}
+	}`
+
+	code, result := pgPost(t, e.url, query)
+	if code != http.StatusOK {
+		t.Fatalf("status: got %d, want 200", code)
+	}
+
+	areas := getSlice(t, result, "ng.v1.AreaService", "list", "areas")
+	if len(areas) != 1 {
+		t.Fatalf("expected 1 area, got %d", len(areas))
+	}
+	projects, ok := asMap(t, areas[0])["projects"].([]any)
+	if !ok || len(projects) != 1 {
+		t.Fatalf("expected 1 project in area")
+	}
+	projItem := asMap(t, projects[0])
+	if got := projItem["priority"]; got != "PRIORITY_2" {
+		t.Fatalf("project priority=%v, want PROJECT_PRIORITY_2", got)
 	}
 }

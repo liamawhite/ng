@@ -5,17 +5,20 @@
 import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_google_api_annotations } from "./google/api/annotations_pb";
-import type { EmptySchema } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_empty } from "@bufbuild/protobuf/wkt";
+import { file_google_api_field_behavior } from "./google/api/field_behavior_pb";
+import type { EmptySchema, FieldMask, Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_empty, file_google_protobuf_field_mask, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import { file_buf_validate_validate } from "./buf/validate/validate_pb";
 import { file_protograph_v1alpha1_options } from "./protograph/v1alpha1/options_pb";
+import type { Priority } from "./common_pb";
+import { file_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file tasks.proto.
  */
 export const file_tasks: GenFile = /*@__PURE__*/
-  fileDesc("Cgt0YXNrcy5wcm90bxIFbmcudjEiigEKBFRhc2sSCgoCaWQYASABKAkSDQoFdGl0bGUYAiABKAkSDwoHY29udGVudBgDIAEoCRInCgpwcm9qZWN0X2lkGAQgASgJQhOCtRgPCg1uZy52MS5Qcm9qZWN0EiEKBnN0YXR1cxgFIAEoDjIRLm5nLnYxLlRhc2tTdGF0dXNKBAgGEAdKBAgHEAgifwoRQ3JlYXRlVGFza1JlcXVlc3QSFgoFdGl0bGUYASABKAlCB7pIBHICEAESDwoHY29udGVudBgCIAEoCRISCgpwcm9qZWN0X2lkGAMgASgJEiEKBnN0YXR1cxgEIAEoDjIRLm5nLnYxLlRhc2tTdGF0dXNKBAgFEAZKBAgGEAciJQoOR2V0VGFza1JlcXVlc3QSEwoCaWQYASABKAlCB7pIBHICEAEiJgoQTGlzdFRhc2tzUmVxdWVzdBISCgpwcm9qZWN0X2lkGAEgASgJIi8KEUxpc3RUYXNrc1Jlc3BvbnNlEhoKBXRhc2tzGAEgAygLMgsubmcudjEuVGFzayKUAQoRVXBkYXRlVGFza1JlcXVlc3QSEwoCaWQYASABKAlCB7pIBHICEAESFgoFdGl0bGUYAiABKAlCB7pIBHICEAESDwoHY29udGVudBgDIAEoCRISCgpwcm9qZWN0X2lkGAQgASgJEiEKBnN0YXR1cxgFIAEoDjIRLm5nLnYxLlRhc2tTdGF0dXNKBAgGEAdKBAgHEAgiKAoRRGVsZXRlVGFza1JlcXVlc3QSEwoCaWQYASABKAlCB7pIBHICEAEqcgoKVGFza1N0YXR1cxIbChdUQVNLX1NUQVRVU19VTlNQRUNJRklFRBAAEhQKEFRBU0tfU1RBVFVTX1RPRE8QARIbChdUQVNLX1NUQVRVU19JTl9QUk9HUkVTUxACEhQKEFRBU0tfU1RBVFVTX0RPTkUQAzKZAwoLVGFza1NlcnZpY2USSQoGQ3JlYXRlEhgubmcudjEuQ3JlYXRlVGFza1JlcXVlc3QaCy5uZy52MS5UYXNrIhiC0+STAhI6ASoiDS9hcGkvdjEvdGFza3MSRQoDR2V0EhUubmcudjEuR2V0VGFza1JlcXVlc3QaCy5uZy52MS5UYXNrIhqC0+STAhQSEi9hcGkvdjEvdGFza3Mve2lkfRJQCgRMaXN0EhcubmcudjEuTGlzdFRhc2tzUmVxdWVzdBoYLm5nLnYxLkxpc3RUYXNrc1Jlc3BvbnNlIhWC0+STAg8SDS9hcGkvdjEvdGFza3MSTgoGVXBkYXRlEhgubmcudjEuVXBkYXRlVGFza1JlcXVlc3QaCy5uZy52MS5UYXNrIh2C0+STAhc6ASoaEi9hcGkvdjEvdGFza3Mve2lkfRJWCgZEZWxldGUSGC5uZy52MS5EZWxldGVUYXNrUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSIagtPkkwIUKhIvYXBpL3YxL3Rhc2tzL3tpZH1CKVonZ2l0aHViLmNvbS9saWFtYXdoaXRlL25nL2FwaS9nb2xhbmc7YXBpYgZwcm90bzM", [file_google_api_annotations, file_google_protobuf_empty, file_buf_validate_validate, file_protograph_v1alpha1_options]);
+  fileDesc("Cgt0YXNrcy5wcm90bxIFbmcudjEimwIKBFRhc2sSCgoCaWQYASABKAkSDQoFdGl0bGUYAiABKAkSDwoHY29udGVudBgDIAEoCRInCgpwcm9qZWN0X2lkGAQgASgJQhOCtRgPCg1uZy52MS5Qcm9qZWN0EiEKBnN0YXR1cxgFIAEoDjIRLm5nLnYxLlRhc2tTdGF0dXMSKAoOcGFyZW50X3Rhc2tfaWQYCCABKAlCEIK1GAwKCm5nLnYxLlRhc2sSMgoJY29tcGxldGVkGAkgASgLMhouZ29vZ2xlLnByb3RvYnVmLlRpbWVzdGFtcEID4EEDEg4KBnBpbm5lZBgKIAEoCBIhCghwcmlvcml0eRgLIAEoDjIPLm5nLnYxLlByaW9yaXR5SgQIBhAHSgQIBxAIItABChFDcmVhdGVUYXNrUmVxdWVzdBIWCgV0aXRsZRgBIAEoCUIHukgEcgIQARIPCgdjb250ZW50GAIgASgJEhIKCnByb2plY3RfaWQYAyABKAkSIQoGc3RhdHVzGAQgASgOMhEubmcudjEuVGFza1N0YXR1cxIWCg5wYXJlbnRfdGFza19pZBgHIAEoCRIOCgZwaW5uZWQYCSABKAgSIQoIcHJpb3JpdHkYCiABKA4yDy5uZy52MS5Qcmlvcml0eUoECAUQBkoECAYQB0oECAgQCSIlCg5HZXRUYXNrUmVxdWVzdBITCgJpZBgBIAEoCUIHukgEcgIQASJeChBMaXN0VGFza3NSZXF1ZXN0EhIKCnByb2plY3RfaWQYASABKAkSFgoOcGFyZW50X3Rhc2tfaWQYAiABKAkSEwoGcGlubmVkGAMgASgISACIAQFCCQoHX3Bpbm5lZCIvChFMaXN0VGFza3NSZXNwb25zZRIaCgV0YXNrcxgBIAMoCzILLm5nLnYxLlRhc2silQIKEVVwZGF0ZVRhc2tSZXF1ZXN0EhMKAmlkGAEgASgJQge6SARyAhABEg0KBXRpdGxlGAIgASgJEg8KB2NvbnRlbnQYAyABKAkSEgoKcHJvamVjdF9pZBgEIAEoCRIhCgZzdGF0dXMYBSABKA4yES5uZy52MS5UYXNrU3RhdHVzEhYKDnBhcmVudF90YXNrX2lkGAggASgJEjcKC3VwZGF0ZV9tYXNrGAogASgLMhouZ29vZ2xlLnByb3RvYnVmLkZpZWxkTWFza0IGukgDyAEBEg4KBnBpbm5lZBgLIAEoCBIhCghwcmlvcml0eRgMIAEoDjIPLm5nLnYxLlByaW9yaXR5SgQIBhAHSgQIBxAISgQICRAKIigKEURlbGV0ZVRhc2tSZXF1ZXN0EhMKAmlkGAEgASgJQge6SARyAhABKosBCgpUYXNrU3RhdHVzEhsKF1RBU0tfU1RBVFVTX1VOU1BFQ0lGSUVEEAASFAoQVEFTS19TVEFUVVNfVE9ETxABEhsKF1RBU0tfU1RBVFVTX0lOX1BST0dSRVNTEAISFAoQVEFTS19TVEFUVVNfRE9ORRADEhcKE1RBU0tfU1RBVFVTX0JMT0NLRUQQBDKZAwoLVGFza1NlcnZpY2USSQoGQ3JlYXRlEhgubmcudjEuQ3JlYXRlVGFza1JlcXVlc3QaCy5uZy52MS5UYXNrIhiC0+STAhI6ASoiDS9hcGkvdjEvdGFza3MSRQoDR2V0EhUubmcudjEuR2V0VGFza1JlcXVlc3QaCy5uZy52MS5UYXNrIhqC0+STAhQSEi9hcGkvdjEvdGFza3Mve2lkfRJQCgRMaXN0EhcubmcudjEuTGlzdFRhc2tzUmVxdWVzdBoYLm5nLnYxLkxpc3RUYXNrc1Jlc3BvbnNlIhWC0+STAg8SDS9hcGkvdjEvdGFza3MSTgoGVXBkYXRlEhgubmcudjEuVXBkYXRlVGFza1JlcXVlc3QaCy5uZy52MS5UYXNrIh2C0+STAhc6ASoaEi9hcGkvdjEvdGFza3Mve2lkfRJWCgZEZWxldGUSGC5uZy52MS5EZWxldGVUYXNrUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSIagtPkkwIUKhIvYXBpL3YxL3Rhc2tzL3tpZH1CKVonZ2l0aHViLmNvbS9saWFtYXdoaXRlL25nL2FwaS9nb2xhbmc7YXBpYgZwcm90bzM", [file_google_api_annotations, file_google_api_field_behavior, file_google_protobuf_empty, file_google_protobuf_field_mask, file_google_protobuf_timestamp, file_buf_validate_validate, file_protograph_v1alpha1_options, file_common]);
 
 /**
  * @generated from message ng.v1.Task
@@ -47,6 +50,28 @@ export type Task = Message<"ng.v1.Task"> & {
    * @generated from field: ng.v1.TaskStatus status = 5;
    */
   status: TaskStatus;
+
+  /**
+   * optional parent task (subtask nesting)
+   *
+   * @generated from field: string parent_task_id = 8;
+   */
+  parentTaskId: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp completed = 9;
+   */
+  completed?: Timestamp;
+
+  /**
+   * @generated from field: bool pinned = 10;
+   */
+  pinned: boolean;
+
+  /**
+   * @generated from field: ng.v1.Priority priority = 11;
+   */
+  priority: Priority;
 };
 
 /**
@@ -79,6 +104,21 @@ export type CreateTaskRequest = Message<"ng.v1.CreateTaskRequest"> & {
    * @generated from field: ng.v1.TaskStatus status = 4;
    */
   status: TaskStatus;
+
+  /**
+   * @generated from field: string parent_task_id = 7;
+   */
+  parentTaskId: string;
+
+  /**
+   * @generated from field: bool pinned = 9;
+   */
+  pinned: boolean;
+
+  /**
+   * @generated from field: ng.v1.Priority priority = 10;
+   */
+  priority: Priority;
 };
 
 /**
@@ -115,6 +155,20 @@ export type ListTasksRequest = Message<"ng.v1.ListTasksRequest"> & {
    * @generated from field: string project_id = 1;
    */
   projectId: string;
+
+  /**
+   * optional filter
+   *
+   * @generated from field: string parent_task_id = 2;
+   */
+  parentTaskId: string;
+
+  /**
+   * optional filter; when true returns only pinned tasks
+   *
+   * @generated from field: optional bool pinned = 3;
+   */
+  pinned?: boolean;
 };
 
 /**
@@ -169,6 +223,26 @@ export type UpdateTaskRequest = Message<"ng.v1.UpdateTaskRequest"> & {
    * @generated from field: ng.v1.TaskStatus status = 5;
    */
   status: TaskStatus;
+
+  /**
+   * @generated from field: string parent_task_id = 8;
+   */
+  parentTaskId: string;
+
+  /**
+   * @generated from field: google.protobuf.FieldMask update_mask = 10;
+   */
+  updateMask?: FieldMask;
+
+  /**
+   * @generated from field: bool pinned = 11;
+   */
+  pinned: boolean;
+
+  /**
+   * @generated from field: ng.v1.Priority priority = 12;
+   */
+  priority: Priority;
 };
 
 /**
@@ -218,6 +292,11 @@ export enum TaskStatus {
    * @generated from enum value: TASK_STATUS_DONE = 3;
    */
   DONE = 3,
+
+  /**
+   * @generated from enum value: TASK_STATUS_BLOCKED = 4;
+   */
+  BLOCKED = 4,
 }
 
 /**

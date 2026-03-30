@@ -22,49 +22,49 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// ParentRef declares that a field is a foreign-key reference to another proto
+// EdgeRef declares that a field is a foreign-key reference to another proto
 // message type. The protograph gateway uses this to automatically fan-out and
-// stitch child entities onto parent responses.
+// stitch related entities onto responses.
 //
 // Fields 3-6 are optional overrides for when the default naming conventions
 // ({TypeName}Service, "List", "Get") do not apply.
-type ParentRef struct {
+type EdgeRef struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// Fully-qualified parent message type, e.g. "ng.v1.Area". Required.
+	// Fully-qualified target message type, e.g. "ng.v1.Area". Required.
 	Type string `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	// Filter field name in the child's List request, e.g. "area_id".
+	// Filter field name in the target's List request, e.g. "area_id".
 	// Defaults to the annotated field's own name when omitted.
 	Via string `protobuf:"bytes,2,opt,name=via,proto3" json:"via,omitempty"`
-	// Service to call when listing children.
+	// Service to call when listing related entities.
 	// Defaults to {pkg}.{ChildTypeName}Service when omitted.
 	ListService string `protobuf:"bytes,3,opt,name=list_service,json=listService,proto3" json:"list_service,omitempty"`
-	// Method to call when listing children.
+	// Method to call when listing related entities.
 	// Defaults to "List" when omitted.
 	ListMethod string `protobuf:"bytes,4,opt,name=list_method,json=listMethod,proto3" json:"list_method,omitempty"`
-	// Service to call when fetching the parent.
-	// Defaults to {pkg}.{ParentTypeName}Service when omitted.
+	// Service to call when fetching the target.
+	// Defaults to {pkg}.{TargetTypeName}Service when omitted.
 	GetService string `protobuf:"bytes,5,opt,name=get_service,json=getService,proto3" json:"get_service,omitempty"`
-	// Method to call when fetching the parent.
+	// Method to call when fetching the target.
 	// Defaults to "Get" when omitted.
 	GetMethod     string `protobuf:"bytes,6,opt,name=get_method,json=getMethod,proto3" json:"get_method,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ParentRef) Reset() {
-	*x = ParentRef{}
+func (x *EdgeRef) Reset() {
+	*x = EdgeRef{}
 	mi := &file_protograph_v1alpha1_options_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ParentRef) String() string {
+func (x *EdgeRef) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ParentRef) ProtoMessage() {}
+func (*EdgeRef) ProtoMessage() {}
 
-func (x *ParentRef) ProtoReflect() protoreflect.Message {
+func (x *EdgeRef) ProtoReflect() protoreflect.Message {
 	mi := &file_protograph_v1alpha1_options_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -76,47 +76,47 @@ func (x *ParentRef) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ParentRef.ProtoReflect.Descriptor instead.
-func (*ParentRef) Descriptor() ([]byte, []int) {
+// Deprecated: Use EdgeRef.ProtoReflect.Descriptor instead.
+func (*EdgeRef) Descriptor() ([]byte, []int) {
 	return file_protograph_v1alpha1_options_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *ParentRef) GetType() string {
+func (x *EdgeRef) GetType() string {
 	if x != nil {
 		return x.Type
 	}
 	return ""
 }
 
-func (x *ParentRef) GetVia() string {
+func (x *EdgeRef) GetVia() string {
 	if x != nil {
 		return x.Via
 	}
 	return ""
 }
 
-func (x *ParentRef) GetListService() string {
+func (x *EdgeRef) GetListService() string {
 	if x != nil {
 		return x.ListService
 	}
 	return ""
 }
 
-func (x *ParentRef) GetListMethod() string {
+func (x *EdgeRef) GetListMethod() string {
 	if x != nil {
 		return x.ListMethod
 	}
 	return ""
 }
 
-func (x *ParentRef) GetGetService() string {
+func (x *EdgeRef) GetGetService() string {
 	if x != nil {
 		return x.GetService
 	}
 	return ""
 }
 
-func (x *ParentRef) GetGetMethod() string {
+func (x *EdgeRef) GetGetMethod() string {
 	if x != nil {
 		return x.GetMethod
 	}
@@ -126,26 +126,26 @@ func (x *ParentRef) GetGetMethod() string {
 var file_protograph_v1alpha1_options_proto_extTypes = []protoimpl.ExtensionInfo{
 	{
 		ExtendedType:  (*descriptorpb.FieldOptions)(nil),
-		ExtensionType: (*ParentRef)(nil),
+		ExtensionType: (*EdgeRef)(nil),
 		Field:         50000,
-		Name:          "protograph.v1alpha1.parent",
-		Tag:           "bytes,50000,opt,name=parent",
+		Name:          "protograph.v1alpha1.edge",
+		Tag:           "bytes,50000,opt,name=edge",
 		Filename:      "protograph/v1alpha1/options.proto",
 	},
 }
 
 // Extension fields to descriptorpb.FieldOptions.
 var (
-	// optional protograph.v1alpha1.ParentRef parent = 50000;
-	E_Parent = &file_protograph_v1alpha1_options_proto_extTypes[0]
+	// optional protograph.v1alpha1.EdgeRef edge = 50000;
+	E_Edge = &file_protograph_v1alpha1_options_proto_extTypes[0]
 )
 
 var File_protograph_v1alpha1_options_proto protoreflect.FileDescriptor
 
 const file_protograph_v1alpha1_options_proto_rawDesc = "" +
 	"\n" +
-	"!protograph/v1alpha1/options.proto\x12\x13protograph.v1alpha1\x1a google/protobuf/descriptor.proto\"\xb5\x01\n" +
-	"\tParentRef\x12\x12\n" +
+	"!protograph/v1alpha1/options.proto\x12\x13protograph.v1alpha1\x1a google/protobuf/descriptor.proto\"\xb3\x01\n" +
+	"\aEdgeRef\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\x10\n" +
 	"\x03via\x18\x02 \x01(\tR\x03via\x12!\n" +
 	"\flist_service\x18\x03 \x01(\tR\vlistService\x12\x1f\n" +
@@ -154,8 +154,8 @@ const file_protograph_v1alpha1_options_proto_rawDesc = "" +
 	"\vget_service\x18\x05 \x01(\tR\n" +
 	"getService\x12\x1d\n" +
 	"\n" +
-	"get_method\x18\x06 \x01(\tR\tgetMethod:W\n" +
-	"\x06parent\x12\x1d.google.protobuf.FieldOptions\x18І\x03 \x01(\v2\x1e.protograph.v1alpha1.ParentRefR\x06parentBLZJgithub.com/liamawhite/ng/api/golang/protograph/v1alpha1;protographv1alpha1b\x06proto3"
+	"get_method\x18\x06 \x01(\tR\tgetMethod:Q\n" +
+	"\x04edge\x12\x1d.google.protobuf.FieldOptions\x18І\x03 \x01(\v2\x1c.protograph.v1alpha1.EdgeRefR\x04edgeBLZJgithub.com/liamawhite/ng/api/golang/protograph/v1alpha1;protographv1alpha1b\x06proto3"
 
 var (
 	file_protograph_v1alpha1_options_proto_rawDescOnce sync.Once
@@ -171,12 +171,12 @@ func file_protograph_v1alpha1_options_proto_rawDescGZIP() []byte {
 
 var file_protograph_v1alpha1_options_proto_msgTypes = make([]protoimpl.MessageInfo, 1)
 var file_protograph_v1alpha1_options_proto_goTypes = []any{
-	(*ParentRef)(nil),                 // 0: protograph.v1alpha1.ParentRef
+	(*EdgeRef)(nil),                   // 0: protograph.v1alpha1.EdgeRef
 	(*descriptorpb.FieldOptions)(nil), // 1: google.protobuf.FieldOptions
 }
 var file_protograph_v1alpha1_options_proto_depIdxs = []int32{
-	1, // 0: protograph.v1alpha1.parent:extendee -> google.protobuf.FieldOptions
-	0, // 1: protograph.v1alpha1.parent:type_name -> protograph.v1alpha1.ParentRef
+	1, // 0: protograph.v1alpha1.edge:extendee -> google.protobuf.FieldOptions
+	0, // 1: protograph.v1alpha1.edge:type_name -> protograph.v1alpha1.EdgeRef
 	2, // [2:2] is the sub-list for method output_type
 	2, // [2:2] is the sub-list for method input_type
 	1, // [1:2] is the sub-list for extension type_name

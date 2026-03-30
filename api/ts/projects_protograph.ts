@@ -3,6 +3,16 @@
 
 import { createClient as createGenericClient } from "../../protograph/ts/client.js";
 
+export interface EffortFields {
+  value?: Record<string, never>;
+  unit?: Record<string, never>;
+}
+
+export interface LinkFields {
+  url?: Record<string, never>;
+  title?: Record<string, never>;
+}
+
 export interface ProjectFields {
   id?: Record<string, never>;
   title?: Record<string, never>;
@@ -10,6 +20,10 @@ export interface ProjectFields {
   parentId?: Record<string, never>;
   status?: Record<string, never>;
   areaId?: Record<string, never>;
+  completed?: TimestampFields;
+  estimatedEffort?: EffortFields;
+  links?: LinkFields;
+  priority?: Record<string, never>;
   projects?: ProjectFields;
 }
 
@@ -19,6 +33,9 @@ export interface CreateProjectRequestFields {
   parentId?: Record<string, never>;
   status?: Record<string, never>;
   areaId?: Record<string, never>;
+  estimatedEffort?: EffortFields;
+  links?: LinkFields;
+  priority?: Record<string, never>;
 }
 
 export interface GetProjectRequestFields {
@@ -42,10 +59,24 @@ export interface UpdateProjectRequestFields {
   parentId?: Record<string, never>;
   status?: Record<string, never>;
   areaId?: Record<string, never>;
+  updateMask?: FieldMaskFields;
+  estimatedEffort?: EffortFields;
+  links?: LinkFields;
+  priority?: Record<string, never>;
 }
 
 export interface DeleteProjectRequestFields {
   id?: Record<string, never>;
+}
+
+export interface EffortResult {
+  value?: number;
+  unit?: number;
+}
+
+export interface LinkResult {
+  url?: string;
+  title?: string;
 }
 
 export interface ProjectResult {
@@ -55,6 +86,10 @@ export interface ProjectResult {
   parentId?: string;
   status?: number;
   areaId?: string;
+  completed?: TimestampResult;
+  estimatedEffort?: EffortResult;
+  links?: LinkResult[];
+  priority?: number;
   projects?: ProjectResult[];
 }
 
@@ -64,6 +99,9 @@ export interface CreateProjectRequestResult {
   parentId?: string;
   status?: number;
   areaId?: string;
+  estimatedEffort?: EffortResult;
+  links?: LinkResult[];
+  priority?: number;
 }
 
 export interface GetProjectRequestResult {
@@ -87,6 +125,10 @@ export interface UpdateProjectRequestResult {
   parentId?: string;
   status?: number;
   areaId?: string;
+  updateMask?: FieldMaskResult;
+  estimatedEffort?: EffortResult;
+  links?: LinkResult[];
+  priority?: number;
 }
 
 export interface DeleteProjectRequestResult {

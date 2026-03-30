@@ -3,9 +3,13 @@ syntax = "proto3";
 package ng.v1;
 
 import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
 import "buf/validate/validate.proto";
 import "protograph/v1alpha1/options.proto";
+import "common.proto";
 
 option go_package = "github.com/liamawhite/ng/api/golang;api";
 
@@ -16,6 +20,23 @@ enum ProjectStatus {
   PROJECT_STATUS_BLOCKED     = 3;
   PROJECT_STATUS_COMPLETED   = 4;
   PROJECT_STATUS_ABANDONED   = 5;
+}
+
+enum EffortUnit {
+  EFFORT_UNIT_UNSPECIFIED = 0;
+  EFFORT_UNIT_DAYS        = 1;
+  EFFORT_UNIT_WEEKS       = 2;
+  EFFORT_UNIT_MONTHS      = 3;
+}
+
+message Effort {
+  int32      value = 1;
+  EffortUnit unit  = 2;
+}
+
+message Link {
+  string url   = 1;
+  string title = 2;
 }
 
 service ProjectService {
@@ -49,13 +70,17 @@ service ProjectService {
 }
 
 message Project {
-  string        id        = 1;
-  string        title     = 2;
-  string        content   = 3;
-  string        parent_id = 4 [(protograph.v1alpha1.parent) = { type: "ng.v1.Project" }]; // empty if top-level
-  reserved      5, 6;          // canvas_x, canvas_y removed
-  ProjectStatus status    = 7;
-  string        area_id   = 8 [(protograph.v1alpha1.parent) = { type: "ng.v1.Area" }];
+  string                    id        = 1;
+  string                    title     = 2;
+  string                    content   = 3;
+  string                    parent_id = 4 [(protograph.v1alpha1.edge) = { type: "ng.v1.Project" }]; // empty if top-level
+  reserved                  5, 6;          // canvas_x, canvas_y removed
+  ProjectStatus             status    = 7;
+  string                    area_id   = 8 [(protograph.v1alpha1.edge) = { type: "ng.v1.Area" }];
+  google.protobuf.Timestamp completed         = 9  [(google.api.field_behavior) = OUTPUT_ONLY];
+  optional Effort           estimated_effort  = 10;
+  repeated Link             links             = 11;
+  Priority           priority          = 12;
 }
 
 message CreateProjectRequest {
@@ -65,6 +90,10 @@ message CreateProjectRequest {
   reserved      4, 5;    // canvas_x, canvas_y removed
   ProjectStatus status    = 6;
   string        area_id   = 7;
+  reserved         8;        // completed is server-managed (OUTPUT_ONLY)
+  optional Effort  estimated_effort = 9;
+  repeated Link    links            = 10;
+  Priority  priority         = 11;
 }
 
 message GetProjectRequest {
@@ -82,13 +111,18 @@ message ListProjectsResponse {
 }
 
 message UpdateProjectRequest {
-  string        id        = 1 [(buf.validate.field).string.min_len = 1];
-  string        title     = 2 [(buf.validate.field).string.min_len = 1];
-  string        content   = 3;
-  string        parent_id = 4;
-  reserved      5, 6;    // canvas_x, canvas_y removed
-  ProjectStatus status    = 7;
-  string        area_id   = 8;
+  string                    id          = 1 [(buf.validate.field).string.min_len = 1];
+  string                    title       = 2;
+  string                    content     = 3;
+  string                    parent_id   = 4;
+  reserved                  5, 6;    // canvas_x, canvas_y removed
+  ProjectStatus             status      = 7;
+  string                    area_id     = 8;
+  reserved                  9;        // completed is server-managed (OUTPUT_ONLY)
+  google.protobuf.FieldMask update_mask        = 10 [(buf.validate.field).required = true];
+  optional Effort           estimated_effort   = 11;
+  repeated Link             links              = 12;
+  Priority           priority           = 13;
 }
 
 message DeleteProjectRequest {

@@ -3,9 +3,13 @@ syntax = "proto3";
 package ng.v1;
 
 import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
 import "buf/validate/validate.proto";
 import "protograph/v1alpha1/options.proto";
+import "common.proto";
 
 option go_package = "github.com/liamawhite/ng/api/golang;api";
 
@@ -14,6 +18,7 @@ enum TaskStatus {
   TASK_STATUS_TODO        = 1;
   TASK_STATUS_IN_PROGRESS = 2;
   TASK_STATUS_DONE        = 3;
+  TASK_STATUS_BLOCKED     = 4;
 }
 
 service TaskService {
@@ -47,20 +52,28 @@ service TaskService {
 }
 
 message Task {
-  string     id         = 1;
-  string     title      = 2;
-  string     content    = 3;
-  string     project_id = 4 [(protograph.v1alpha1.parent) = { type: "ng.v1.Project" }]; // part_of project
-  TaskStatus status     = 5;
-  reserved   6, 7;            // canvas_x, canvas_y removed
+  string                    id             = 1;
+  string                    title          = 2;
+  string                    content        = 3;
+  string                    project_id     = 4 [(protograph.v1alpha1.edge) = { type: "ng.v1.Project" }]; // part_of project
+  TaskStatus                status         = 5;
+  reserved                  6, 7;                // canvas_x, canvas_y removed
+  string                    parent_task_id = 8 [(protograph.v1alpha1.edge) = { type: "ng.v1.Task" }];  // optional parent task (subtask nesting)
+  google.protobuf.Timestamp completed      = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+  bool                      pinned         = 10;
+  Priority              priority       = 11;
 }
 
 message CreateTaskRequest {
-  string     title      = 1 [(buf.validate.field).string.min_len = 1];
-  string     content    = 2;
-  string     project_id = 3;
-  TaskStatus status     = 4;
-  reserved   5, 6;      // canvas_x, canvas_y removed
+  string     title          = 1 [(buf.validate.field).string.min_len = 1];
+  string     content        = 2;
+  string     project_id     = 3;
+  TaskStatus status         = 4;
+  reserved   5, 6;              // canvas_x, canvas_y removed
+  string     parent_task_id = 7;
+  reserved   8;                 // completed is server-managed (OUTPUT_ONLY)
+  bool         pinned         = 9;
+  Priority priority       = 10;
 }
 
 message GetTaskRequest {
@@ -68,7 +81,9 @@ message GetTaskRequest {
 }
 
 message ListTasksRequest {
-  string project_id = 1; // optional filter
+  string project_id     = 1; // optional filter
+  string parent_task_id = 2; // optional filter
+  optional bool pinned  = 3; // optional filter; when true returns only pinned tasks
 }
 
 message ListTasksResponse {
@@ -76,12 +91,17 @@ message ListTasksResponse {
 }
 
 message UpdateTaskRequest {
-  string     id         = 1 [(buf.validate.field).string.min_len = 1];
-  string     title      = 2 [(buf.validate.field).string.min_len = 1];
-  string     content    = 3;
-  string     project_id = 4;
-  TaskStatus status     = 5;
-  reserved   6, 7;      // canvas_x, canvas_y removed
+  string                    id             = 1 [(buf.validate.field).string.min_len = 1];
+  string                    title          = 2;
+  string                    content        = 3;
+  string                    project_id     = 4;
+  TaskStatus                status         = 5;
+  reserved                  6, 7;              // canvas_x, canvas_y removed
+  string                    parent_task_id = 8;
+  reserved                  9;                 // completed is server-managed (OUTPUT_ONLY)
+  google.protobuf.FieldMask update_mask    = 10 [(buf.validate.field).required = true];
+  bool                      pinned         = 11;
+  Priority              priority       = 12;
 }
 
 message DeleteTaskRequest {

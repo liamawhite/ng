@@ -8,7 +8,18 @@
       "Bash(go test:*)",
       "Bash(ls:*)",
       "Bash(npm show:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(nix develop:*)",
+      "Bash(npx playwright:*)",
+      "Bash(git rm:*)",
+      "Bash(npm run:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Bash(lsof:*)",
+      "Bash(grpcurl:*)",
+      "Bash(npm:*)",
+      "Bash(go run:*)",
+      "Bash(grep:*)"
     ]
   }
 }

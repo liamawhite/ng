@@ -8,8 +8,8 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
-// parentExtensionName is the fully-qualified name of the (protograph.v1alpha1.parent) extension.
-const parentExtensionName = "protograph.v1alpha1.parent"
+// edgeExtensionName is the fully-qualified name of the (protograph.v1alpha1.edge) extension.
+const edgeExtensionName = "protograph.v1alpha1.edge"
 
 // RelationResolver holds the metadata needed to fan-out a parent->children relation.
 type RelationResolver struct {
@@ -39,16 +39,16 @@ type Relations struct {
 }
 
 // ExtractRelations walks message fields in the given FileDescriptors looking for
-// fields annotated with (protograph.v1alpha1.parent) and builds both forward
-// (parent->children) and reverse (child->parent) resolver maps.
+// fields annotated with (protograph.v1alpha1.edge) and builds both forward
+// (target->children) and reverse (child->target) resolver maps.
 //
 // Forward key: parentType (e.g. "ng.v1.Area") -> fieldName (e.g. "projects")
 // Reverse key: childType  (e.g. "ng.v1.Project") -> fieldName (e.g. "area")
 //
 // The caller must ensure the package containing the generated options.pb.go
-// (which registers E_Parent) has been imported (blank import is fine).
+// (which registers E_Edge) has been imported (blank import is fine).
 func ExtractRelations(files []protoreflect.FileDescriptor) *Relations {
-	extType, err := protoregistry.GlobalTypes.FindExtensionByName(parentExtensionName)
+	extType, err := protoregistry.GlobalTypes.FindExtensionByName(edgeExtensionName)
 	if err != nil {
 		return &Relations{
 			Forward: make(map[string]map[string]RelationResolver),
@@ -87,8 +87,8 @@ func extractFromMessages(msgs protoreflect.MessageDescriptors, extType protorefl
 				continue
 			}
 			val := proto.GetExtension(opts, extType)
-			ref := extractParentRef(val)
-			if ref == nil || ref.parentType == "" {
+			ref := extractEdgeRef(val)
+			if ref == nil || ref.targetType == "" {
 				continue
 			}
 
@@ -102,7 +102,7 @@ func extractFromMessages(msgs protoreflect.MessageDescriptors, extType protorefl
 				filterField = string(field.Name()) // e.g. "area_id"
 			}
 
-			// --- Forward resolver: parentType -> children ---
+			// --- Forward resolver: targetType -> children ---
 			childSvcFullName := ref.listService
 			if childSvcFullName == "" {
 				childSvcFullName = pkg + "." + childTypeName + "Service"
@@ -116,10 +116,10 @@ func extractFromMessages(msgs protoreflect.MessageDescriptors, extType protorefl
 					responseItemsField := findRepeatedField(listMethod.Output(), protoreflect.FullName(childTypeFullName))
 					if responseItemsField != "" {
 						forwardFieldName := strings.ToLower(childTypeName) + "s" // e.g. "projects"
-						if rels.Forward[ref.parentType] == nil {
-							rels.Forward[ref.parentType] = make(map[string]RelationResolver)
+						if rels.Forward[ref.targetType] == nil {
+							rels.Forward[ref.targetType] = make(map[string]RelationResolver)
 						}
-						rels.Forward[ref.parentType][forwardFieldName] = RelationResolver{
+						rels.Forward[ref.targetType][forwardFieldName] = RelationResolver{
 							ServiceName:        childSvcFullName,
 							MethodName:         listMethodName,
 							FullMethod:         "/" + childSvcFullName + "/" + listMethodName,
@@ -131,33 +131,33 @@ func extractFromMessages(msgs protoreflect.MessageDescriptors, extType protorefl
 				}
 			}
 
-			// --- Reverse resolver: childType -> parent ---
-			// Derive the parent service from the parent type name.
+			// --- Reverse resolver: childType -> target ---
+			// Derive the target service from the target type name.
 			// e.g. "ng.v1.Area" -> pkg "ng.v1", simple "Area" -> "ng.v1.AreaService"
-			lastDot := strings.LastIndex(ref.parentType, ".")
+			lastDot := strings.LastIndex(ref.targetType, ".")
 			if lastDot >= 0 {
-				parentPkg := ref.parentType[:lastDot]
-				parentSimpleName := ref.parentType[lastDot+1:]
-				parentSvcFullName := ref.getService
-				if parentSvcFullName == "" {
-					parentSvcFullName = parentPkg + "." + parentSimpleName + "Service"
+				targetPkg := ref.targetType[:lastDot]
+				targetSimpleName := ref.targetType[lastDot+1:]
+				targetSvcFullName := ref.getService
+				if targetSvcFullName == "" {
+					targetSvcFullName = targetPkg + "." + targetSimpleName + "Service"
 				}
 				getMethodName := ref.getMethod
 				if getMethodName == "" {
 					getMethodName = "Get"
 				}
-				if parentSvc, ok := svcIndex[parentSvcFullName]; ok {
-					if getMethod := parentSvc.Methods().ByName(protoreflect.Name(getMethodName)); getMethod != nil {
-						reverseFieldName := strings.ToLower(parentSimpleName) // e.g. "area"
+				if targetSvc, ok := svcIndex[targetSvcFullName]; ok {
+					if getMethod := targetSvc.Methods().ByName(protoreflect.Name(getMethodName)); getMethod != nil {
+						reverseFieldName := strings.ToLower(targetSimpleName) // e.g. "area"
 						if rels.Reverse[childTypeFullName] == nil {
 							rels.Reverse[childTypeFullName] = make(map[string]ReverseResolver)
 						}
 						rels.Reverse[childTypeFullName][reverseFieldName] = ReverseResolver{
-							ServiceName:   parentSvcFullName,
+							ServiceName:   targetSvcFullName,
 							MethodName:    getMethodName,
-							FullMethod:    "/" + parentSvcFullName + "/" + getMethodName,
+							FullMethod:    "/" + targetSvcFullName + "/" + getMethodName,
 							FKField:       string(field.Name()), // always the actual field name
-							ParentMsgType: ref.parentType,
+							ParentMsgType: ref.targetType,
 						}
 					}
 				}
@@ -186,8 +186,8 @@ func findRepeatedField(resp protoreflect.MessageDescriptor, childFullName protor
 	return ""
 }
 
-type parentRef struct {
-	parentType  string
+type edgeRef struct {
+	targetType  string
 	via         string
 	listService string
 	listMethod  string
@@ -195,7 +195,7 @@ type parentRef struct {
 	getMethod   string
 }
 
-func extractParentRef(v any) *parentRef {
+func extractEdgeRef(v any) *edgeRef {
 	msg, ok := v.(protoreflect.ProtoMessage)
 	if !ok {
 		return nil
@@ -209,8 +209,8 @@ func extractParentRef(v any) *parentRef {
 		}
 		return m.Get(fd).String()
 	}
-	return &parentRef{
-		parentType:  get("type"),
+	return &edgeRef{
+		targetType:  get("type"),
 		via:         get("via"),
 		listService: get("list_service"),
 		listMethod:  get("list_method"),

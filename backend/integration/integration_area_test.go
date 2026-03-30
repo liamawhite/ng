@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	api "github.com/liamawhite/ng/api/golang"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 )
 
 // TestAreaCRUD_API verifies the full create/get/update/delete lifecycle for areas.
@@ -40,7 +41,11 @@ func TestAreaCRUD_API(t *testing.T) {
 		t.Fatalf("List: got %d areas, want 1 with id=%q", len(list.Areas), area.Id)
 	}
 
-	_, err = e.areas.Update(bg, &api.UpdateAreaRequest{Id: area.Id, Title: "personal"})
+	_, err = e.areas.Update(bg, &api.UpdateAreaRequest{
+		Id:         area.Id,
+		Title:      "personal",
+		UpdateMask: &fieldmaskpb.FieldMask{Paths: []string{"title"}},
+	})
 	if err != nil {
 		t.Fatalf("Update: %v", err)
 	}

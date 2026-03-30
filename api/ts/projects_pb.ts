@@ -5,17 +5,64 @@
 import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_google_api_annotations } from "./google/api/annotations_pb";
-import type { EmptySchema } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_empty } from "@bufbuild/protobuf/wkt";
+import { file_google_api_field_behavior } from "./google/api/field_behavior_pb";
+import type { EmptySchema, FieldMask, Timestamp } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_empty, file_google_protobuf_field_mask, file_google_protobuf_timestamp } from "@bufbuild/protobuf/wkt";
 import { file_buf_validate_validate } from "./buf/validate/validate_pb";
 import { file_protograph_v1alpha1_options } from "./protograph/v1alpha1/options_pb";
+import type { Priority } from "./common_pb";
+import { file_common } from "./common_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file projects.proto.
  */
 export const file_projects: GenFile = /*@__PURE__*/
-  fileDesc("Cg5wcm9qZWN0cy5wcm90bxIFbmcudjEisgEKB1Byb2plY3QSCgoCaWQYASABKAkSDQoFdGl0bGUYAiABKAkSDwoHY29udGVudBgDIAEoCRImCglwYXJlbnRfaWQYBCABKAlCE4K1GA8KDW5nLnYxLlByb2plY3QSJAoGc3RhdHVzGAcgASgOMhQubmcudjEuUHJvamVjdFN0YXR1cxIhCgdhcmVhX2lkGAggASgJQhCCtRgMCgpuZy52MS5BcmVhSgQIBRAGSgQIBhAHIpUBChRDcmVhdGVQcm9qZWN0UmVxdWVzdBIWCgV0aXRsZRgBIAEoCUIHukgEcgIQARIPCgdjb250ZW50GAIgASgJEhEKCXBhcmVudF9pZBgDIAEoCRIkCgZzdGF0dXMYBiABKA4yFC5uZy52MS5Qcm9qZWN0U3RhdHVzEg8KB2FyZWFfaWQYByABKAlKBAgEEAVKBAgFEAYiKAoRR2V0UHJvamVjdFJlcXVlc3QSEwoCaWQYASABKAlCB7pIBHICEAEiXwoTTGlzdFByb2plY3RzUmVxdWVzdBIRCglwYXJlbnRfaWQYASABKAkSJAoGc3RhdHVzGAIgASgOMhQubmcudjEuUHJvamVjdFN0YXR1cxIPCgdhcmVhX2lkGAMgASgJIjgKFExpc3RQcm9qZWN0c1Jlc3BvbnNlEiAKCHByb2plY3RzGAEgAygLMg4ubmcudjEuUHJvamVjdCKqAQoUVXBkYXRlUHJvamVjdFJlcXVlc3QSEwoCaWQYASABKAlCB7pIBHICEAESFgoFdGl0bGUYAiABKAlCB7pIBHICEAESDwoHY29udGVudBgDIAEoCRIRCglwYXJlbnRfaWQYBCABKAkSJAoGc3RhdHVzGAcgASgOMhQubmcudjEuUHJvamVjdFN0YXR1cxIPCgdhcmVhX2lkGAggASgJSgQIBRAGSgQIBhAHIisKFERlbGV0ZVByb2plY3RSZXF1ZXN0EhMKAmlkGAEgASgJQge6SARyAhABKr4BCg1Qcm9qZWN0U3RhdHVzEh4KGlBST0pFQ1RfU1RBVFVTX1VOU1BFQ0lGSUVEEAASGQoVUFJPSkVDVF9TVEFUVVNfQUNUSVZFEAESGgoWUFJPSkVDVF9TVEFUVVNfQkFDS0xPRxACEhoKFlBST0pFQ1RfU1RBVFVTX0JMT0NLRUQQAxIcChhQUk9KRUNUX1NUQVRVU19DT01QTEVURUQQBBIcChhQUk9KRUNUX1NUQVRVU19BQkFORE9ORUQQBTLGAwoOUHJvamVjdFNlcnZpY2USUgoGQ3JlYXRlEhsubmcudjEuQ3JlYXRlUHJvamVjdFJlcXVlc3QaDi5uZy52MS5Qcm9qZWN0IhuC0+STAhU6ASoiEC9hcGkvdjEvcHJvamVjdHMSTgoDR2V0EhgubmcudjEuR2V0UHJvamVjdFJlcXVlc3QaDi5uZy52MS5Qcm9qZWN0Ih2C0+STAhcSFS9hcGkvdjEvcHJvamVjdHMve2lkfRJZCgRMaXN0EhoubmcudjEuTGlzdFByb2plY3RzUmVxdWVzdBobLm5nLnYxLkxpc3RQcm9qZWN0c1Jlc3BvbnNlIhiC0+STAhISEC9hcGkvdjEvcHJvamVjdHMSVwoGVXBkYXRlEhsubmcudjEuVXBkYXRlUHJvamVjdFJlcXVlc3QaDi5uZy52MS5Qcm9qZWN0IiCC0+STAho6ASoaFS9hcGkvdjEvcHJvamVjdHMve2lkfRJcCgZEZWxldGUSGy5uZy52MS5EZWxldGVQcm9qZWN0UmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSIdgtPkkwIXKhUvYXBpL3YxL3Byb2plY3RzL3tpZH1CKVonZ2l0aHViLmNvbS9saWFtYXdoaXRlL25nL2FwaS9nb2xhbmc7YXBpYgZwcm90bzM", [file_google_api_annotations, file_google_protobuf_empty, file_buf_validate_validate, file_protograph_v1alpha1_options]);
+  fileDesc("Cg5wcm9qZWN0cy5wcm90bxIFbmcudjEiOAoGRWZmb3J0Eg0KBXZhbHVlGAEgASgFEh8KBHVuaXQYAiABKA4yES5uZy52MS5FZmZvcnRVbml0IiIKBExpbmsSCwoDdXJsGAEgASgJEg0KBXRpdGxlGAIgASgJIugCCgdQcm9qZWN0EgoKAmlkGAEgASgJEg0KBXRpdGxlGAIgASgJEg8KB2NvbnRlbnQYAyABKAkSJgoJcGFyZW50X2lkGAQgASgJQhOCtRgPCg1uZy52MS5Qcm9qZWN0EiQKBnN0YXR1cxgHIAEoDjIULm5nLnYxLlByb2plY3RTdGF0dXMSIQoHYXJlYV9pZBgIIAEoCUIQgrUYDAoKbmcudjEuQXJlYRIyCgljb21wbGV0ZWQYCSABKAsyGi5nb29nbGUucHJvdG9idWYuVGltZXN0YW1wQgPgQQMSLAoQZXN0aW1hdGVkX2VmZm9ydBgKIAEoCzINLm5nLnYxLkVmZm9ydEgAiAEBEhoKBWxpbmtzGAsgAygLMgsubmcudjEuTGluaxIhCghwcmlvcml0eRgMIAEoDjIPLm5nLnYxLlByaW9yaXR5QhMKEV9lc3RpbWF0ZWRfZWZmb3J0SgQIBRAGSgQIBhAHIp0CChRDcmVhdGVQcm9qZWN0UmVxdWVzdBIWCgV0aXRsZRgBIAEoCUIHukgEcgIQARIPCgdjb250ZW50GAIgASgJEhEKCXBhcmVudF9pZBgDIAEoCRIkCgZzdGF0dXMYBiABKA4yFC5uZy52MS5Qcm9qZWN0U3RhdHVzEg8KB2FyZWFfaWQYByABKAkSLAoQZXN0aW1hdGVkX2VmZm9ydBgJIAEoCzINLm5nLnYxLkVmZm9ydEgAiAEBEhoKBWxpbmtzGAogAygLMgsubmcudjEuTGluaxIhCghwcmlvcml0eRgLIAEoDjIPLm5nLnYxLlByaW9yaXR5QhMKEV9lc3RpbWF0ZWRfZWZmb3J0SgQIBBAFSgQIBRAGSgQICBAJIigKEUdldFByb2plY3RSZXF1ZXN0EhMKAmlkGAEgASgJQge6SARyAhABIl8KE0xpc3RQcm9qZWN0c1JlcXVlc3QSEQoJcGFyZW50X2lkGAEgASgJEiQKBnN0YXR1cxgCIAEoDjIULm5nLnYxLlByb2plY3RTdGF0dXMSDwoHYXJlYV9pZBgDIAEoCSI4ChRMaXN0UHJvamVjdHNSZXNwb25zZRIgCghwcm9qZWN0cxgBIAMoCzIOLm5nLnYxLlByb2plY3Qi4gIKFFVwZGF0ZVByb2plY3RSZXF1ZXN0EhMKAmlkGAEgASgJQge6SARyAhABEg0KBXRpdGxlGAIgASgJEg8KB2NvbnRlbnQYAyABKAkSEQoJcGFyZW50X2lkGAQgASgJEiQKBnN0YXR1cxgHIAEoDjIULm5nLnYxLlByb2plY3RTdGF0dXMSDwoHYXJlYV9pZBgIIAEoCRI3Cgt1cGRhdGVfbWFzaxgKIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBARIsChBlc3RpbWF0ZWRfZWZmb3J0GAsgASgLMg0ubmcudjEuRWZmb3J0SACIAQESGgoFbGlua3MYDCADKAsyCy5uZy52MS5MaW5rEiEKCHByaW9yaXR5GA0gASgOMg8ubmcudjEuUHJpb3JpdHlCEwoRX2VzdGltYXRlZF9lZmZvcnRKBAgFEAZKBAgGEAdKBAgJEAoiKwoURGVsZXRlUHJvamVjdFJlcXVlc3QSEwoCaWQYASABKAlCB7pIBHICEAEqvgEKDVByb2plY3RTdGF0dXMSHgoaUFJPSkVDVF9TVEFUVVNfVU5TUEVDSUZJRUQQABIZChVQUk9KRUNUX1NUQVRVU19BQ1RJVkUQARIaChZQUk9KRUNUX1NUQVRVU19CQUNLTE9HEAISGgoWUFJPSkVDVF9TVEFUVVNfQkxPQ0tFRBADEhwKGFBST0pFQ1RfU1RBVFVTX0NPTVBMRVRFRBAEEhwKGFBST0pFQ1RfU1RBVFVTX0FCQU5ET05FRBAFKm4KCkVmZm9ydFVuaXQSGwoXRUZGT1JUX1VOSVRfVU5TUEVDSUZJRUQQABIUChBFRkZPUlRfVU5JVF9EQVlTEAESFQoRRUZGT1JUX1VOSVRfV0VFS1MQAhIWChJFRkZPUlRfVU5JVF9NT05USFMQAzLGAwoOUHJvamVjdFNlcnZpY2USUgoGQ3JlYXRlEhsubmcudjEuQ3JlYXRlUHJvamVjdFJlcXVlc3QaDi5uZy52MS5Qcm9qZWN0IhuC0+STAhU6ASoiEC9hcGkvdjEvcHJvamVjdHMSTgoDR2V0EhgubmcudjEuR2V0UHJvamVjdFJlcXVlc3QaDi5uZy52MS5Qcm9qZWN0Ih2C0+STAhcSFS9hcGkvdjEvcHJvamVjdHMve2lkfRJZCgRMaXN0EhoubmcudjEuTGlzdFByb2plY3RzUmVxdWVzdBobLm5nLnYxLkxpc3RQcm9qZWN0c1Jlc3BvbnNlIhiC0+STAhISEC9hcGkvdjEvcHJvamVjdHMSVwoGVXBkYXRlEhsubmcudjEuVXBkYXRlUHJvamVjdFJlcXVlc3QaDi5uZy52MS5Qcm9qZWN0IiCC0+STAho6ASoaFS9hcGkvdjEvcHJvamVjdHMve2lkfRJcCgZEZWxldGUSGy5uZy52MS5EZWxldGVQcm9qZWN0UmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSIdgtPkkwIXKhUvYXBpL3YxL3Byb2plY3RzL3tpZH1CKVonZ2l0aHViLmNvbS9saWFtYXdoaXRlL25nL2FwaS9nb2xhbmc7YXBpYgZwcm90bzM", [file_google_api_annotations, file_google_api_field_behavior, file_google_protobuf_empty, file_google_protobuf_field_mask, file_google_protobuf_timestamp, file_buf_validate_validate, file_protograph_v1alpha1_options, file_common]);
+
+/**
+ * @generated from message ng.v1.Effort
+ */
+export type Effort = Message<"ng.v1.Effort"> & {
+  /**
+   * @generated from field: int32 value = 1;
+   */
+  value: number;
+
+  /**
+   * @generated from field: ng.v1.EffortUnit unit = 2;
+   */
+  unit: EffortUnit;
+};
+
+/**
+ * Describes the message ng.v1.Effort.
+ * Use `create(EffortSchema)` to create a new message.
+ */
+export const EffortSchema: GenMessage<Effort> = /*@__PURE__*/
+  messageDesc(file_projects, 0);
+
+/**
+ * @generated from message ng.v1.Link
+ */
+export type Link = Message<"ng.v1.Link"> & {
+  /**
+   * @generated from field: string url = 1;
+   */
+  url: string;
+
+  /**
+   * @generated from field: string title = 2;
+   */
+  title: string;
+};
+
+/**
+ * Describes the message ng.v1.Link.
+ * Use `create(LinkSchema)` to create a new message.
+ */
+export const LinkSchema: GenMessage<Link> = /*@__PURE__*/
+  messageDesc(file_projects, 1);
 
 /**
  * @generated from message ng.v1.Project
@@ -52,6 +99,26 @@ export type Project = Message<"ng.v1.Project"> & {
    * @generated from field: string area_id = 8;
    */
   areaId: string;
+
+  /**
+   * @generated from field: google.protobuf.Timestamp completed = 9;
+   */
+  completed?: Timestamp;
+
+  /**
+   * @generated from field: optional ng.v1.Effort estimated_effort = 10;
+   */
+  estimatedEffort?: Effort;
+
+  /**
+   * @generated from field: repeated ng.v1.Link links = 11;
+   */
+  links: Link[];
+
+  /**
+   * @generated from field: ng.v1.Priority priority = 12;
+   */
+  priority: Priority;
 };
 
 /**
@@ -59,7 +126,7 @@ export type Project = Message<"ng.v1.Project"> & {
  * Use `create(ProjectSchema)` to create a new message.
  */
 export const ProjectSchema: GenMessage<Project> = /*@__PURE__*/
-  messageDesc(file_projects, 0);
+  messageDesc(file_projects, 2);
 
 /**
  * @generated from message ng.v1.CreateProjectRequest
@@ -89,6 +156,21 @@ export type CreateProjectRequest = Message<"ng.v1.CreateProjectRequest"> & {
    * @generated from field: string area_id = 7;
    */
   areaId: string;
+
+  /**
+   * @generated from field: optional ng.v1.Effort estimated_effort = 9;
+   */
+  estimatedEffort?: Effort;
+
+  /**
+   * @generated from field: repeated ng.v1.Link links = 10;
+   */
+  links: Link[];
+
+  /**
+   * @generated from field: ng.v1.Priority priority = 11;
+   */
+  priority: Priority;
 };
 
 /**
@@ -96,7 +178,7 @@ export type CreateProjectRequest = Message<"ng.v1.CreateProjectRequest"> & {
  * Use `create(CreateProjectRequestSchema)` to create a new message.
  */
 export const CreateProjectRequestSchema: GenMessage<CreateProjectRequest> = /*@__PURE__*/
-  messageDesc(file_projects, 1);
+  messageDesc(file_projects, 3);
 
 /**
  * @generated from message ng.v1.GetProjectRequest
@@ -113,7 +195,7 @@ export type GetProjectRequest = Message<"ng.v1.GetProjectRequest"> & {
  * Use `create(GetProjectRequestSchema)` to create a new message.
  */
 export const GetProjectRequestSchema: GenMessage<GetProjectRequest> = /*@__PURE__*/
-  messageDesc(file_projects, 2);
+  messageDesc(file_projects, 4);
 
 /**
  * @generated from message ng.v1.ListProjectsRequest
@@ -146,7 +228,7 @@ export type ListProjectsRequest = Message<"ng.v1.ListProjectsRequest"> & {
  * Use `create(ListProjectsRequestSchema)` to create a new message.
  */
 export const ListProjectsRequestSchema: GenMessage<ListProjectsRequest> = /*@__PURE__*/
-  messageDesc(file_projects, 3);
+  messageDesc(file_projects, 5);
 
 /**
  * @generated from message ng.v1.ListProjectsResponse
@@ -163,7 +245,7 @@ export type ListProjectsResponse = Message<"ng.v1.ListProjectsResponse"> & {
  * Use `create(ListProjectsResponseSchema)` to create a new message.
  */
 export const ListProjectsResponseSchema: GenMessage<ListProjectsResponse> = /*@__PURE__*/
-  messageDesc(file_projects, 4);
+  messageDesc(file_projects, 6);
 
 /**
  * @generated from message ng.v1.UpdateProjectRequest
@@ -198,6 +280,26 @@ export type UpdateProjectRequest = Message<"ng.v1.UpdateProjectRequest"> & {
    * @generated from field: string area_id = 8;
    */
   areaId: string;
+
+  /**
+   * @generated from field: google.protobuf.FieldMask update_mask = 10;
+   */
+  updateMask?: FieldMask;
+
+  /**
+   * @generated from field: optional ng.v1.Effort estimated_effort = 11;
+   */
+  estimatedEffort?: Effort;
+
+  /**
+   * @generated from field: repeated ng.v1.Link links = 12;
+   */
+  links: Link[];
+
+  /**
+   * @generated from field: ng.v1.Priority priority = 13;
+   */
+  priority: Priority;
 };
 
 /**
@@ -205,7 +307,7 @@ export type UpdateProjectRequest = Message<"ng.v1.UpdateProjectRequest"> & {
  * Use `create(UpdateProjectRequestSchema)` to create a new message.
  */
 export const UpdateProjectRequestSchema: GenMessage<UpdateProjectRequest> = /*@__PURE__*/
-  messageDesc(file_projects, 5);
+  messageDesc(file_projects, 7);
 
 /**
  * @generated from message ng.v1.DeleteProjectRequest
@@ -222,7 +324,7 @@ export type DeleteProjectRequest = Message<"ng.v1.DeleteProjectRequest"> & {
  * Use `create(DeleteProjectRequestSchema)` to create a new message.
  */
 export const DeleteProjectRequestSchema: GenMessage<DeleteProjectRequest> = /*@__PURE__*/
-  messageDesc(file_projects, 6);
+  messageDesc(file_projects, 8);
 
 /**
  * @generated from enum ng.v1.ProjectStatus
@@ -264,6 +366,37 @@ export enum ProjectStatus {
  */
 export const ProjectStatusSchema: GenEnum<ProjectStatus> = /*@__PURE__*/
   enumDesc(file_projects, 0);
+
+/**
+ * @generated from enum ng.v1.EffortUnit
+ */
+export enum EffortUnit {
+  /**
+   * @generated from enum value: EFFORT_UNIT_UNSPECIFIED = 0;
+   */
+  UNSPECIFIED = 0,
+
+  /**
+   * @generated from enum value: EFFORT_UNIT_DAYS = 1;
+   */
+  DAYS = 1,
+
+  /**
+   * @generated from enum value: EFFORT_UNIT_WEEKS = 2;
+   */
+  WEEKS = 2,
+
+  /**
+   * @generated from enum value: EFFORT_UNIT_MONTHS = 3;
+   */
+  MONTHS = 3,
+}
+
+/**
+ * Describes the enum ng.v1.EffortUnit.
+ */
+export const EffortUnitSchema: GenEnum<EffortUnit> = /*@__PURE__*/
+  enumDesc(file_projects, 1);
 
 /**
  * @generated from service ng.v1.ProjectService

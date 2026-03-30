@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package ng.v1;
+
+option go_package = "github.com/liamawhite/ng/api/golang;api";
+
+enum Priority {
+  PRIORITY_UNSPECIFIED = 0;
+  PRIORITY_1           = 1;
+  PRIORITY_2           = 2;
+  PRIORITY_3           = 3;
+  PRIORITY_4           = 4;
+  PRIORITY_5           = 5;
+}

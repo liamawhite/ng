@@ -31,11 +31,9 @@ const fileWithRelationships = `---
 id: proj-1
 type: project
 title: My Project
-relationships:
-    - predicate: part_of
-      target: parent-1
-    - predicate: in_area
-      target: area-1
+area: area-1
+projects:
+    - parent-1
 ---
 `
 
@@ -84,10 +82,10 @@ func TestParseFile_WithRelationships(t *testing.T) {
 	if len(edges) != 2 {
 		t.Fatalf("edges: got %d, want 2", len(edges))
 	}
-	if edges[0].Predicate != "part_of" || edges[0].TargetID != "parent-1" {
+	if edges[0].Predicate != "in_area" || edges[0].TargetID != "area-1" {
 		t.Fatalf("edge[0]: %+v", edges[0])
 	}
-	if edges[1].Predicate != "in_area" || edges[1].TargetID != "area-1" {
+	if edges[1].Predicate != "subproject" || edges[1].TargetID != "parent-1" {
 		t.Fatalf("edge[1]: %+v", edges[1])
 	}
 	for _, e := range edges {
@@ -225,7 +223,9 @@ func TestWriteFile_WithEdges(t *testing.T) {
 	dir := t.TempDir()
 	n := &graph.Node{ID: "edge-test", Type: graph.EntityTypeProject, Title: "EP"}
 	edges := []graph.Edge{
-		{SourceID: n.ID, Predicate: "part_of", TargetID: "parent-99"},
+		{SourceID: n.ID, Predicate: "in_area", TargetID: "area-1"},
+		{SourceID: n.ID, Predicate: "task", TargetID: "task-1"},
+		{SourceID: n.ID, Predicate: "subproject", TargetID: "child-99"},
 	}
 
 	if err := WriteFile(dir, n, edges); err != nil {
@@ -235,8 +235,17 @@ func TestWriteFile_WithEdges(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ParseFile: %v", err)
 	}
-	if len(gotEdges) != 1 || gotEdges[0].TargetID != "parent-99" {
+	if len(gotEdges) != 3 {
 		t.Fatalf("edges not serialized correctly: %+v", gotEdges)
+	}
+	if gotEdges[0].Predicate != "in_area" || gotEdges[0].TargetID != "area-1" {
+		t.Fatalf("edge[0]: %+v", gotEdges[0])
+	}
+	if gotEdges[1].Predicate != "task" || gotEdges[1].TargetID != "task-1" {
+		t.Fatalf("edge[1]: %+v", gotEdges[1])
+	}
+	if gotEdges[2].Predicate != "subproject" || gotEdges[2].TargetID != "child-99" {
+		t.Fatalf("edge[2]: %+v", gotEdges[2])
 	}
 }
 

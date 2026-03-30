@@ -73,15 +73,24 @@ func isNotFound(err error) bool {
 }
 
 // projectFileContent builds raw .md content for a project as an external editor would.
-func projectFileContent(id, title, content, parentID string) string {
+// taskIDs lists child tasks; subprojectIDs lists child subprojects.
+func projectFileContent(id, title, content string, taskIDs, subprojectIDs []string) string {
 	var sb strings.Builder
 	sb.WriteString("---\n")
 	fmt.Fprintf(&sb, "id: %s\n", id)
 	sb.WriteString("type: project\n")
 	fmt.Fprintf(&sb, "title: %s\n", title)
-	if parentID != "" {
-		sb.WriteString("relationships:\n")
-		fmt.Fprintf(&sb, "    - predicate: part_of\n      target: %s\n", parentID)
+	if len(taskIDs) > 0 {
+		sb.WriteString("tasks:\n")
+		for _, tid := range taskIDs {
+			fmt.Fprintf(&sb, "    - %s\n", tid)
+		}
+	}
+	if len(subprojectIDs) > 0 {
+		sb.WriteString("projects:\n")
+		for _, sid := range subprojectIDs {
+			fmt.Fprintf(&sb, "    - %s\n", sid)
+		}
 	}
 	sb.WriteString("---\n")
 	if content != "" {
@@ -91,7 +100,8 @@ func projectFileContent(id, title, content, parentID string) string {
 }
 
 // taskFileContent builds raw .md content for a task as an external editor would.
-func taskFileContent(id, title, taskStatus, content, projectID string) string {
+// subtaskIDs lists child subtasks.
+func taskFileContent(id, title, taskStatus, content string, subtaskIDs []string) string {
 	var sb strings.Builder
 	sb.WriteString("---\n")
 	fmt.Fprintf(&sb, "id: %s\n", id)
@@ -100,9 +110,11 @@ func taskFileContent(id, title, taskStatus, content, projectID string) string {
 	if taskStatus != "" {
 		fmt.Fprintf(&sb, "status: %s\n", taskStatus)
 	}
-	if projectID != "" {
-		sb.WriteString("relationships:\n")
-		fmt.Fprintf(&sb, "    - predicate: part_of\n      target: %s\n", projectID)
+	if len(subtaskIDs) > 0 {
+		sb.WriteString("subtasks:\n")
+		for _, sid := range subtaskIDs {
+			fmt.Fprintf(&sb, "    - %s\n", sid)
+		}
 	}
 	sb.WriteString("---\n")
 	if content != "" {
@@ -177,8 +189,7 @@ func TestTypeIsolation(t *testing.T) {
 }
 
 // TestListRelated_MixedTypes verifies that a project with both a child project
-// and a task as part_of returns both in ListRelated (incoming edges), and that
-// the entity types are correctly distinguished.
+// and a task returns both via the domain APIs, with correct entity types.
 func TestListRelated_MixedTypes(t *testing.T) {
 	e := newEnv(t)
 
@@ -199,32 +210,20 @@ func TestListRelated_MixedTypes(t *testing.T) {
 		t.Fatalf("Create task: %v", err)
 	}
 
-	related, err := e.graph.ListRelated(bg, &api.ListRelatedRequest{
-		Id:        parent.Id,
-		Predicate: api.Predicate_PREDICATE_PART_OF,
-		Direction: api.Direction_DIRECTION_INCOMING,
-	})
+	subprojects, err := e.projects.List(bg, &api.ListProjectsRequest{ParentId: parent.Id})
 	if err != nil {
-		t.Fatalf("ListRelated: %v", err)
+		t.Fatalf("ListProjects: %v", err)
 	}
-	if len(related.Entities) != 2 {
-		t.Fatalf("ListRelated: got %d entities, want 2", len(related.Entities))
+	if len(subprojects.Projects) != 1 || subprojects.Projects[0].Id != child.Id {
+		t.Fatalf("ListProjects(parent_id): got %d, want child %q", len(subprojects.Projects), child.Id)
 	}
 
-	var childFound, taskFound bool
-	for _, r := range related.Entities {
-		switch {
-		case r.Entity.GetProject().GetId() == child.Id:
-			childFound = true
-		case r.Entity.GetTask().GetId() == task.Id:
-			taskFound = true
-		}
+	tasks, err := e.tasks.List(bg, &api.ListTasksRequest{ProjectId: parent.Id})
+	if err != nil {
+		t.Fatalf("ListTasks: %v", err)
 	}
-	if !childFound {
-		t.Fatal("child project not in parent's ListRelated")
-	}
-	if !taskFound {
-		t.Fatal("task not in parent's ListRelated")
+	if len(tasks.Tasks) != 1 || tasks.Tasks[0].Id != task.Id {
+		t.Fatalf("ListTasks(project_id): got %d, want task %q", len(tasks.Tasks), task.Id)
 	}
 }
 
@@ -236,7 +235,7 @@ func TestMalformedFile_Watcher(t *testing.T) {
 	e := newEnv(t)
 
 	goodID := "00000000-0000-0000-0000-000000000010"
-	writeFile(t, e.dir, goodID, projectFileContent(goodID, "Valid", "good content", ""))
+	writeFile(t, e.dir, goodID, projectFileContent(goodID, "Valid", "good content", nil, nil))
 	waitFor(t, func() bool {
 		_, err := e.projects.Get(bg, &api.GetProjectRequest{Id: goodID})
 		return err == nil
@@ -249,7 +248,7 @@ func TestMalformedFile_Watcher(t *testing.T) {
 	// Write a sentinel after the bad file; processing the sentinel confirms
 	// the watcher has already attempted (and failed) the bad file.
 	sentinelID := "00000000-0000-0000-0000-000000000012"
-	writeFile(t, e.dir, sentinelID, projectFileContent(sentinelID, "Sentinel", "", ""))
+	writeFile(t, e.dir, sentinelID, projectFileContent(sentinelID, "Sentinel", "", nil, nil))
 	waitFor(t, func() bool {
 		_, err := e.projects.Get(bg, &api.GetProjectRequest{Id: sentinelID})
 		return err == nil
@@ -281,8 +280,9 @@ func TestLoad_FileConsistency(t *testing.T) {
 	projID := "00000000-0000-0000-0000-000000000005"
 	taskID := "00000000-0000-0000-0000-000000000006"
 
-	writeFile(t, dir, projID, projectFileContent(projID, "LoadedProject", "proj content", ""))
-	writeFile(t, dir, taskID, taskFileContent(taskID, "LoadedTask", "done", "task content", projID))
+	// Project stores the task edge; task file has no outgoing relationships.
+	writeFile(t, dir, projID, projectFileContent(projID, "LoadedProject", "proj content", []string{taskID}, nil))
+	writeFile(t, dir, taskID, taskFileContent(taskID, "LoadedTask", "done", "task content", nil))
 
 	g := graph.New()
 	s := store.New(dir, g)
@@ -292,7 +292,6 @@ func TestLoad_FileConsistency(t *testing.T) {
 
 	projects := server.NewProjectServer(s)
 	tasks := server.NewTaskServer(s)
-	graphSrv := server.NewGraphServer(s)
 
 	proj, err := projects.Get(bg, &api.GetProjectRequest{Id: projID})
 	if err != nil {
@@ -313,16 +312,12 @@ func TestLoad_FileConsistency(t *testing.T) {
 		t.Fatalf("task.Status=%v, want DONE", task.Status)
 	}
 
-	// Graph edges are consistent.
-	related, err := graphSrv.ListRelated(bg, &api.ListRelatedRequest{
-		Id:        projID,
-		Predicate: api.Predicate_PREDICATE_PART_OF,
-		Direction: api.Direction_DIRECTION_INCOMING,
-	})
+	// Verify consistency via ListTasks.
+	list, err := tasks.List(bg, &api.ListTasksRequest{ProjectId: projID})
 	if err != nil {
-		t.Fatalf("ListRelated: %v", err)
+		t.Fatalf("ListTasks after Load: %v", err)
 	}
-	if len(related.Entities) != 1 || related.Entities[0].Entity.GetTask().GetId() != taskID {
-		t.Fatal("ListRelated after Load: task not in project's incoming edges")
+	if len(list.Tasks) != 1 || list.Tasks[0].Id != taskID {
+		t.Fatal("ListTasks after Load: task not in project")
 	}
 }

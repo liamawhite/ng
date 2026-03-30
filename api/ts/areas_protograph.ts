@@ -6,10 +6,12 @@ import { createClient as createGenericClient } from "../../protograph/ts/client.
 export interface AreaFields {
   id?: Record<string, never>;
   title?: Record<string, never>;
+  color?: Record<string, never>;
 }
 
 export interface CreateAreaRequestFields {
   title?: Record<string, never>;
+  color?: Record<string, never>;
 }
 
 export interface GetAreaRequestFields {
@@ -26,6 +28,8 @@ export interface ListAreasResponseFields {
 export interface UpdateAreaRequestFields {
   id?: Record<string, never>;
   title?: Record<string, never>;
+  color?: Record<string, never>;
+  updateMask?: FieldMaskFields;
 }
 
 export interface DeleteAreaRequestFields {
@@ -35,10 +39,12 @@ export interface DeleteAreaRequestFields {
 export interface AreaResult {
   id?: string;
   title?: string;
+  color?: string;
 }
 
 export interface CreateAreaRequestResult {
   title?: string;
+  color?: string;
 }
 
 export interface GetAreaRequestResult {
@@ -55,6 +61,8 @@ export interface ListAreasResponseResult {
 export interface UpdateAreaRequestResult {
   id?: string;
   title?: string;
+  color?: string;
+  updateMask?: FieldMaskResult;
 }
 
 export interface DeleteAreaRequestResult {

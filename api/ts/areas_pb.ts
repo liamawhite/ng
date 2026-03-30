@@ -5,8 +5,8 @@
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import { file_google_api_annotations } from "./google/api/annotations_pb";
-import type { EmptySchema } from "@bufbuild/protobuf/wkt";
-import { file_google_protobuf_empty } from "@bufbuild/protobuf/wkt";
+import type { EmptySchema, FieldMask } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_empty, file_google_protobuf_field_mask } from "@bufbuild/protobuf/wkt";
 import { file_buf_validate_validate } from "./buf/validate/validate_pb";
 import type { Message } from "@bufbuild/protobuf";
 
@@ -14,7 +14,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file areas.proto.
  */
 export const file_areas: GenFile = /*@__PURE__*/
-  fileDesc("CgthcmVhcy5wcm90bxIFbmcudjEiIQoEQXJlYRIKCgJpZBgBIAEoCRINCgV0aXRsZRgCIAEoCSIrChFDcmVhdGVBcmVhUmVxdWVzdBIWCgV0aXRsZRgBIAEoCUIHukgEcgIQASIlCg5HZXRBcmVhUmVxdWVzdBITCgJpZBgBIAEoCUIHukgEcgIQASISChBMaXN0QXJlYXNSZXF1ZXN0Ii8KEUxpc3RBcmVhc1Jlc3BvbnNlEhoKBWFyZWFzGAEgAygLMgsubmcudjEuQXJlYSJAChFVcGRhdGVBcmVhUmVxdWVzdBITCgJpZBgBIAEoCUIHukgEcgIQARIWCgV0aXRsZRgCIAEoCUIHukgEcgIQASIoChFEZWxldGVBcmVhUmVxdWVzdBITCgJpZBgBIAEoCUIHukgEcgIQATKZAwoLQXJlYVNlcnZpY2USSQoGQ3JlYXRlEhgubmcudjEuQ3JlYXRlQXJlYVJlcXVlc3QaCy5uZy52MS5BcmVhIhiC0+STAhI6ASoiDS9hcGkvdjEvYXJlYXMSRQoDR2V0EhUubmcudjEuR2V0QXJlYVJlcXVlc3QaCy5uZy52MS5BcmVhIhqC0+STAhQSEi9hcGkvdjEvYXJlYXMve2lkfRJQCgRMaXN0EhcubmcudjEuTGlzdEFyZWFzUmVxdWVzdBoYLm5nLnYxLkxpc3RBcmVhc1Jlc3BvbnNlIhWC0+STAg8SDS9hcGkvdjEvYXJlYXMSTgoGVXBkYXRlEhgubmcudjEuVXBkYXRlQXJlYVJlcXVlc3QaCy5uZy52MS5BcmVhIh2C0+STAhc6ASoaEi9hcGkvdjEvYXJlYXMve2lkfRJWCgZEZWxldGUSGC5uZy52MS5EZWxldGVBcmVhUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSIagtPkkwIUKhIvYXBpL3YxL2FyZWFzL3tpZH1CKVonZ2l0aHViLmNvbS9saWFtYXdoaXRlL25nL2FwaS9nb2xhbmc7YXBpYgZwcm90bzM", [file_google_api_annotations, file_google_protobuf_empty, file_buf_validate_validate]);
+  fileDesc("CgthcmVhcy5wcm90bxIFbmcudjEiMAoEQXJlYRIKCgJpZBgBIAEoCRINCgV0aXRsZRgCIAEoCRINCgVjb2xvchgDIAEoCSI6ChFDcmVhdGVBcmVhUmVxdWVzdBIWCgV0aXRsZRgBIAEoCUIHukgEcgIQARINCgVjb2xvchgCIAEoCSIlCg5HZXRBcmVhUmVxdWVzdBITCgJpZBgBIAEoCUIHukgEcgIQASISChBMaXN0QXJlYXNSZXF1ZXN0Ii8KEUxpc3RBcmVhc1Jlc3BvbnNlEhoKBWFyZWFzGAEgAygLMgsubmcudjEuQXJlYSJ/ChFVcGRhdGVBcmVhUmVxdWVzdBITCgJpZBgBIAEoCUIHukgEcgIQARINCgV0aXRsZRgCIAEoCRINCgVjb2xvchgDIAEoCRI3Cgt1cGRhdGVfbWFzaxgEIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5GaWVsZE1hc2tCBrpIA8gBASIoChFEZWxldGVBcmVhUmVxdWVzdBITCgJpZBgBIAEoCUIHukgEcgIQATKZAwoLQXJlYVNlcnZpY2USSQoGQ3JlYXRlEhgubmcudjEuQ3JlYXRlQXJlYVJlcXVlc3QaCy5uZy52MS5BcmVhIhiC0+STAhI6ASoiDS9hcGkvdjEvYXJlYXMSRQoDR2V0EhUubmcudjEuR2V0QXJlYVJlcXVlc3QaCy5uZy52MS5BcmVhIhqC0+STAhQSEi9hcGkvdjEvYXJlYXMve2lkfRJQCgRMaXN0EhcubmcudjEuTGlzdEFyZWFzUmVxdWVzdBoYLm5nLnYxLkxpc3RBcmVhc1Jlc3BvbnNlIhWC0+STAg8SDS9hcGkvdjEvYXJlYXMSTgoGVXBkYXRlEhgubmcudjEuVXBkYXRlQXJlYVJlcXVlc3QaCy5uZy52MS5BcmVhIh2C0+STAhc6ASoaEi9hcGkvdjEvYXJlYXMve2lkfRJWCgZEZWxldGUSGC5uZy52MS5EZWxldGVBcmVhUmVxdWVzdBoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSIagtPkkwIUKhIvYXBpL3YxL2FyZWFzL3tpZH1CKVonZ2l0aHViLmNvbS9saWFtYXdoaXRlL25nL2FwaS9nb2xhbmc7YXBpYgZwcm90bzM", [file_google_api_annotations, file_google_protobuf_empty, file_google_protobuf_field_mask, file_buf_validate_validate]);
 
 /**
  * @generated from message ng.v1.Area
@@ -29,6 +29,11 @@ export type Area = Message<"ng.v1.Area"> & {
    * @generated from field: string title = 2;
    */
   title: string;
+
+  /**
+   * @generated from field: string color = 3;
+   */
+  color: string;
 };
 
 /**
@@ -46,6 +51,11 @@ export type CreateAreaRequest = Message<"ng.v1.CreateAreaRequest"> & {
    * @generated from field: string title = 1;
    */
   title: string;
+
+  /**
+   * @generated from field: string color = 2;
+   */
+  color: string;
 };
 
 /**
@@ -115,6 +125,16 @@ export type UpdateAreaRequest = Message<"ng.v1.UpdateAreaRequest"> & {
    * @generated from field: string title = 2;
    */
   title: string;
+
+  /**
+   * @generated from field: string color = 3;
+   */
+  color: string;
+
+  /**
+   * @generated from field: google.protobuf.FieldMask update_mask = 4;
+   */
+  updateMask?: FieldMask;
 };
 
 /**
